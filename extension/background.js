@@ -1,10 +1,13 @@
-// background.js — service worker.
-// Two jobs: (1) turn a "notify" message from the content watcher into a real Chrome
-// system notification, and (2) mirror that same alert to the phone via ntfy when phone
+// background.js — service worker on Chromium, event page on Firefox.
+// Two jobs: (1) turn a "notify" message from the content watcher into a system
+// notification, and (2) mirror that same alert to the phone via ntfy when phone
 // alerts are switched on. It also answers a "phone-test" from the popup so you can
 // confirm the whole chain end to end.
 
 const NTFY_DEFAULT = "https://ntfy.sh";
+const IS_GECKO = typeof browser !== "undefined" && !!browser.runtime.getBrowserInfo;
+// Firefox only: consent the popup asks for when phone alerts are switched on.
+const PHONE_DATA = { data_collection: ["browsingActivity", "websiteContent"] };
 
 function localNotify(msg) {
   chrome.notifications.create(
@@ -14,8 +17,7 @@ function localNotify(msg) {
       iconUrl: chrome.runtime.getURL("icon128.png"),
       title: msg.title || "Higgsfield",
       message: msg.message || "",
-      priority: 2,
-      requireInteraction: false,
+      ...(IS_GECKO ? {} : { priority: 2 }),
     },
     () => {
       if (chrome.runtime.lastError)
@@ -33,12 +35,21 @@ function ntfyPost(phone, payload) {
   return fetch(server + "/", { method: "POST", headers, body: JSON.stringify(payload) });
 }
 
+async function phoneAllowed() {
+  if (!IS_GECKO) return true;
+  try {
+    return await browser.permissions.contains(PHONE_DATA);
+  } catch {
+    return false;
+  }
+}
+
 function pushToPhone(msg) {
-  chrome.storage.local.get("hfNotif", (o) => {
+  chrome.storage.local.get("hfNotif", async (o) => {
     const phone = (o && o.hfNotif && o.hfNotif.phone) || null;
     if (!phone || !phone.on) return;
     const topic = (phone.topic || "").trim();
-    if (!topic) return;
+    if (!topic || !(await phoneAllowed())) return;
     const fail = msg.kind === "fail";
     const payload = {
       topic,

@@ -1,6 +1,7 @@
 // popup.js — control panel for the Generation Notifier.
 "use strict";
 const $ = (id) => document.getElementById(id);
+const IS_GECKO = typeof browser !== "undefined" && !!browser.runtime.getBrowserInfo;
 function on(id, ev, fn) {
   const el = $(id);
   if (el) el.addEventListener(ev, fn);
@@ -122,7 +123,25 @@ function randTopic() {
   }
   return "hf-" + out;
 }
-on("pOn", "change", () => {
+/* Firefox asks for consent before an extension sends browsing data off the device.
+   Phone pushes carry the Higgsfield page URL, so turning them on asks for it. The
+   request has to start inside the click handler, before any await. */
+const PHONE_DATA = { data_collection: ["browsingActivity", "websiteContent"] };
+async function phoneConsent() {
+  if (!IS_GECKO) return true;
+  try {
+    return await browser.permissions.request(PHONE_DATA);
+  } catch {
+    return false;
+  }
+}
+on("pOn", "change", async () => {
+  if ($("pOn").checked && !(await phoneConsent())) {
+    $("pOn").checked = false;
+    const d = $("pdiag");
+    if (d) d.textContent = "Firefox needs your consent to send alerts to your phone.";
+    return;
+  }
   CFG.phone.on = $("pOn").checked;
   if (CFG.phone.on && !(CFG.phone.topic || "").trim()) {
     const t = randTopic();
@@ -190,6 +209,7 @@ try {
 
 function browserName() {
   const ua = navigator.userAgent || "";
+  if (IS_GECKO) return "Firefox";
   if (/OPR\//.test(ua)) return "Opera"; // covers Opera and Opera GX
   if (/Edg\//.test(ua)) return "Edge";
   if (/Vivaldi/.test(ua)) return "Vivaldi";
@@ -364,8 +384,7 @@ on("btnTest", "click", () => {
         iconUrl: chrome.runtime.getURL("icon128.png"),
         title: "Higgsfield Notifier",
         message: "Test notification \u2713",
-        priority: 2,
-        requireInteraction: true,
+        ...(IS_GECKO ? {} : { priority: 2, requireInteraction: true }),
       },
       (id) => {
         const err = chrome.runtime.lastError;
