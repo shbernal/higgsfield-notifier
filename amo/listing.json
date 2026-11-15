@@ -1,0 +1,17 @@
+{
+  "slug": "higgsfield-notifier",
+  "default_locale": "en-US",
+  "summary": {
+    "en-US": "A notification the moment a higgsfield.ai generation finishes or fails: video, image, audio and 3D. Per-type filters, a chime per media type, and optional push to your phone through ntfy."
+  },
+  "categories": ["alerts-updates"],
+  "tags": [],
+  "homepage": {
+    "en-US": "https://github.com/shbernal/higgsfield-notifier"
+  },
+  "support_url": {
+    "en-US": "https://github.com/shbernal/higgsfield-notifier/issues"
+  },
+  "is_experimental": false,
+  "requires_payment": false
+}

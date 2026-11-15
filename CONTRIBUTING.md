@@ -17,8 +17,13 @@ CI runs these on every pull request:
 
 - `pnpm format` (`pnpm format:write` fixes it)
 - `pnpm lint`
+- `pnpm check:version`, which checks the four copies of the version agree
+- `pnpm test`, the tests for the store publishing scripts
 - `pnpm package` and `pnpm package:firefox`, which build the zips into `release/`
 - `pnpm lint:firefox`, which runs `web-ext lint` on the Firefox build
+- `pnpm publish:amo --dry-run`, which checks the AMO listing
+
+Releasing to the stores is covered in [docs/releasing.md](docs/releasing.md).
 
 ## Commits and pull requests
 

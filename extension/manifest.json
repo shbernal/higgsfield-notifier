@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Higgsfield Generation Notifier",
-  "version": "1.4.0",
-  "description": "Get a notification the moment ANY Higgsfield generation finishes or fails \u2014 video, image, audio, 3D. Works in Chrome, Edge, Brave, Opera GX, Vivaldi and Firefox on Windows, macOS and Linux. Optional phone push.",
+  "version": "1.5.0",
+  "description": "Get notified the moment a Higgsfield generation finishes or fails: video, image, audio, 3D. Optional phone push via ntfy.",
   "permissions": ["notifications", "storage"],
   "host_permissions": ["https://higgsfield.ai/*", "https://ntfy.sh/*"],
   "background": {

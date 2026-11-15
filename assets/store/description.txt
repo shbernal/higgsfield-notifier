@@ -1,0 +1,17 @@
+Higgsfield Notifier watches your open higgsfield.ai tabs and sends a system notification the moment a generation finishes or fails, so you can work in another tab or window instead of watching the progress bar.
+
+Features:
+
+- Works for every kind of output: video, image, audio and 3D
+- Per-type filters: get pinged for videos only, or for everything
+- Separate switches for finished and failed generations
+- A distinct chime per media type, plus a fail buzz, each with a preview button
+- A test button that tells you whether the browser accepted the notification or your system is hiding it
+- Optional push to your phone through the free ntfy app
+- An opt-in keep-alive so detection keeps running when the window is minimized
+
+It only watches: it never clicks Generate, writes prompts or spends credits.
+
+Your settings stay in the browser. Nothing leaves your device unless you turn on phone alerts, which send each alert's title, status and Higgsfield page link to the ntfy server you choose (ntfy.sh by default). The extension has no server and no account, and sends nothing to its developer.
+
+Not affiliated with Higgsfield.

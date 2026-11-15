@@ -53,7 +53,8 @@ function pushToPhone(msg) {
     const fail = msg.kind === "fail";
     const payload = {
       topic,
-      title: msg.title || "Higgsfield",
+      // The tag already renders as an emoji in ntfy, so drop the trailing ✓/✗.
+      title: (msg.title || "Higgsfield").replace(/\s*[\u2713\u2717]$/, ""),
       message: msg.message || "",
       tags: [fail ? "warning" : "white_check_mark"],
       priority: fail ? 5 : 4,

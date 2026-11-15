@@ -5,19 +5,26 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: pnpm
@@ -29,7 +36,13 @@ jobs:
         run: pnpm format
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm lint --format github
+
+      - name: Check version
+        run: pnpm check:version
+
+      - name: Test
+        run: pnpm test
 
       - name: Package for Chromium
         run: pnpm package
@@ -40,17 +53,20 @@ jobs:
       - name: Package for Firefox
         run: pnpm package:firefox
 
+      - name: Check AMO listing
+        run: pnpm publish:amo --dry-run
+
   commit-check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Check commit messages
-        uses: commit-check/commit-check-action@v2
+        uses: commit-check/commit-check-action@d68e05baf9511853193e2749f8a64bf2a221619a # v2.22.0
         with:
           message: true
           branch: false
