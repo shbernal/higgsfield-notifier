@@ -3,5 +3,4 @@ release/
 dist-firefox/
 .tmp/
 .env*
-!.env.example
-!.envrc
+fnox.local.toml

@@ -39,4 +39,4 @@ The lock a CI run writes is thrown away with the runner. That is why screenshot 
 
 ## Local credentials
 
-`.env` (git-ignored, loaded by direnv through `.envrc`) uses the names in `.env.example`, shared with the other extensions on the account. Only the Mozilla pair is read here, by `scripts/publish-amo.mjs`.
+Secrets come from fnox. `fnox.toml` declares this extension's store IDs without values, and git-ignored `fnox.local.toml` holds them, age-encrypted. The Mozilla pair is shared with the other extensions on the account and lives in the global config (`fnox set -g`). Only the Mozilla pair is read here, by `scripts/publish-amo.mjs`, so run it as `fnox exec -- pnpm publish:amo`.

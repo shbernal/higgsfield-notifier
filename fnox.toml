@@ -1,0 +1,9 @@
+# Declares the secrets without values. Values live in git-ignored fnox.local.toml.
+# The publish scripts also need MOZILLA_ADDON_JWT_ISSUER and MOZILLA_ADDON_JWT_SECRET,
+# shared across extensions and kept in the global config (fnox set -g). They are not
+# declared here because a valueless entry would shadow the global one.
+[secrets]
+CHROME_EXTENSION_ID = { description = "Chrome Web Store item ID", if_missing = "warn" }
+CHROME_PUBLISHER_ID = { description = "Chrome Web Store publisher ID", if_missing = "warn" }
+GCLOUD_PROJECT_ID = { description = "Google Cloud project for the Chrome Web Store API", if_missing = "warn" }
+SERVICE_ACCOUNT_EMAIL = { description = "Service account for the Chrome Web Store API", if_missing = "warn" }
