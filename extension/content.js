@@ -7,7 +7,7 @@
 // notification if that type (and that event) is switched on in the popup.
 //
 // It does NOT click Generate, set prompts, manage a queue, or touch credits. It only
-// watches and notifies. Detection model is inherited from the Autopilot extension:
+// watches and notifies. Detection model:
 //   working/failed  -> tile keeps data-job-status
 //   success         -> attribute is removed and the finished media (URL contains the
 //                      asset id) appears in the grid.
@@ -57,7 +57,7 @@
         applyKeepAlive();
       }
     });
-  } catch (e) {}
+  } catch {}
 
   /* ==================== job-status vocabulary ====================
      Confirmed live: queued, in_progress (working) | nsfw (terminal failure).
@@ -108,7 +108,7 @@
   function cardFor(id) {
     try {
       return document.querySelector('[data-asset-id="' + esc(id) + '"]');
-    } catch (e) {
+    } catch {
       return (
         [...document.querySelectorAll("[data-asset-id]")].find(
           (x) => x.getAttribute("data-asset-id") === id,
@@ -135,7 +135,7 @@
   // what kind of thing is this page for? strong hint when the tile itself is ambiguous
   function pathType() {
     const p = (location.pathname + " " + location.search).toLowerCase();
-    if (/(^|[\/\-_ ])(3d|mesh)/.test(p)) return "3d";
+    if (/(^|[/\-_ ])(3d|mesh)/.test(p)) return "3d";
     if (/(video|clip|dub|motion|reframe)/.test(p)) return "video";
     if (/(speech|audio|voice|tts|sound|music)/.test(p)) return "audio";
     if (/(image|photo|picture|soul|nano|seedream|upscale)/.test(p)) return "image";
@@ -269,7 +269,7 @@
         gtype: type,
         url: location.href,
       });
-    } catch (e) {}
+    } catch {}
     if (CFG.sound) chime(kind, type);
   }
 
@@ -281,7 +281,7 @@
       if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
       if (AC.state === "suspended") AC.resume().catch(() => {});
       return AC;
-    } catch (e) {
+    } catch {
       return null;
     }
   }
@@ -300,7 +300,7 @@
     if (!c || !window.HFSounds) return;
     try {
       window.HFSounds.play(c, kind, type);
-    } catch (e) {}
+    } catch {}
   }
   hookResume();
 
@@ -402,7 +402,7 @@
       sweepQueued = false;
       try {
         sweep();
-      } catch (e) {}
+      } catch {}
     });
   }
   let observer = null;
@@ -429,7 +429,7 @@
         attributeFilter: ["data-job-status", "src"],
         attributeOldValue: true,
       });
-    } catch (e) {}
+    } catch {}
   }
   startObserver();
   setInterval(sweep, POLL_MS); // fallback net
@@ -456,12 +456,12 @@
       }
       const p = keepEl.play();
       if (p && p.catch) p.catch(() => {}); // resumes on next gesture if blocked
-    } catch (e) {}
+    } catch {}
   }
   function stopKeepAlive() {
     try {
       if (keepEl) keepEl.pause();
-    } catch (e) {}
+    } catch {}
   }
 
   /* ==================== popup status channel ==================== */
@@ -482,5 +482,5 @@
       });
       return true;
     });
-  } catch (e) {}
+  } catch {}
 })();

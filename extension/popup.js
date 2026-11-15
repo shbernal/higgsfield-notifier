@@ -117,7 +117,7 @@ function randTopic() {
     const a = new Uint32Array(12);
     crypto.getRandomValues(a);
     for (let i = 0; i < 12; i++) out += cs[a[i] % cs.length];
-  } catch (e) {
+  } catch {
     for (let i = 0; i < 12; i++) out += cs[Math.floor(Math.random() * cs.length)];
   }
   return "hf-" + out;
@@ -186,7 +186,7 @@ try {
     PLATFORM = (i && i.os) || "";
     paintEnv();
   });
-} catch (e) {}
+} catch {}
 
 function browserName() {
   const ua = navigator.userAgent || "";
@@ -262,7 +262,7 @@ function actx() {
     if (!PCTX) PCTX = new (window.AudioContext || window.webkitAudioContext)();
     if (PCTX.state === "suspended") PCTX.resume().catch(() => {});
     return PCTX;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -271,7 +271,7 @@ function playSnd(kind, type) {
   if (c && window.HFSounds) {
     try {
       window.HFSounds.play(c, kind, type);
-    } catch (e) {}
+    } catch {}
   }
 }
 document.querySelectorAll(".prev").forEach((btn) => {
@@ -290,7 +290,7 @@ function sendRuntime(msg) {
         void chrome.runtime.lastError;
         res(r || null);
       });
-    } catch (e) {
+    } catch {
       res(null);
     }
   });
@@ -302,7 +302,7 @@ function sendTab(tabId, msg) {
         void chrome.runtime.lastError;
         res(r || null);
       });
-    } catch (e) {
+    } catch {
       res(null);
     }
   });
@@ -329,7 +329,7 @@ function hideWarn() {
 async function poll() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab || !/^https:\/\/higgsfield\.ai\//.test(tab.url || "")) {
+    if (!tab || !(tab.url || "").startsWith("https://higgsfield.ai/")) {
       showWarn("Open <b>higgsfield.ai</b> in this tab to start watching your generations.");
       setStatus(false, "Not on Higgsfield");
       return;
@@ -346,7 +346,7 @@ async function poll() {
         res.active === 1 ? "1 generation running now" : res.active + " generations running now",
       );
     else setStatus(false, "Watching \u2014 nothing rendering right now");
-  } catch (e) {
+  } catch {
     setStatus(false, "Watching");
   }
 }
@@ -396,7 +396,7 @@ async function init() {
   try {
     const o = await chrome.storage.local.get("hfNotif");
     CFG = mergeCfg(o && o.hfNotif);
-  } catch (e) {
+  } catch {
     CFG = clone(DEFAULTS);
   }
   applyToUI();
