@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="extension/icon128.png" alt="" width="96" height="96">
+<img src="assets/github/hero.png" alt="Higgsfield Notifier: a notification the moment a generation finishes or fails">
 
 # Higgsfield Notifier
 

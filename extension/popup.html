@@ -87,171 +87,6 @@
         white-space: nowrap;
       }
 
-      /* ===== NEON SIGNATURE ===== */
-      .sign {
-        display: flex;
-        justify-content: center;
-        padding: 13px 0 6px;
-      }
-      .neon {
-        font-family: "Segoe Script", "Brush Script MT", "Bradley Hand", cursive;
-        font-size: 23px;
-        color: #f6ffe2;
-        transform: rotate(-3deg);
-        letter-spacing: 0.5px;
-        text-shadow:
-          0 0 4px #fff,
-          0 0 8px var(--green),
-          0 0 15px var(--green),
-          0 0 24px rgba(208, 254, 23, 0.85),
-          0 0 42px rgba(208, 254, 23, 0.5),
-          0 0 70px rgba(208, 254, 23, 0.35);
-        animation:
-          neonOn 1.2s ease-out both,
-          retroNeon 4.3s 1.2s infinite;
-      }
-      .neon .flick {
-        animation: brokenLetter 3.1s 1.2s infinite;
-      }
-      @keyframes neonOn {
-        0% {
-          opacity: 0;
-        }
-        6% {
-          opacity: 1;
-        }
-        8% {
-          opacity: 0.12;
-        }
-        11% {
-          opacity: 1;
-        }
-        14% {
-          opacity: 0.3;
-        }
-        18% {
-          opacity: 1;
-        }
-        24% {
-          opacity: 0.55;
-        }
-        28% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      @keyframes retroNeon {
-        0%,
-        3% {
-          opacity: 1;
-        }
-        3.6% {
-          opacity: 0.12;
-        }
-        4.2% {
-          opacity: 1;
-        }
-        8% {
-          opacity: 1;
-        }
-        8.6% {
-          opacity: 0.28;
-        }
-        9.2% {
-          opacity: 1;
-        }
-        37% {
-          opacity: 1;
-        }
-        38% {
-          opacity: 0.08;
-        }
-        40.5% {
-          opacity: 0.08;
-        }
-        41% {
-          opacity: 1;
-        }
-        59% {
-          opacity: 1;
-        }
-        60% {
-          opacity: 0.4;
-        }
-        60.6% {
-          opacity: 1;
-        }
-        61.3% {
-          opacity: 0.5;
-        }
-        62% {
-          opacity: 1;
-        }
-        87% {
-          opacity: 1;
-        }
-        88% {
-          opacity: 0.1;
-        }
-        91% {
-          opacity: 0.1;
-        }
-        92% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      @keyframes brokenLetter {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        4% {
-          opacity: 0.1;
-        }
-        5% {
-          opacity: 1;
-        }
-        6% {
-          opacity: 0.1;
-        }
-        8% {
-          opacity: 1;
-        }
-        39% {
-          opacity: 1;
-        }
-        40% {
-          opacity: 0.08;
-        }
-        46% {
-          opacity: 0.08;
-        }
-        47% {
-          opacity: 1;
-        }
-        68% {
-          opacity: 1;
-        }
-        69% {
-          opacity: 0.18;
-        }
-        70.5% {
-          opacity: 1;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .neon,
-        .neon .flick {
-          animation: none;
-          opacity: 1;
-        }
-      }
-
       .body {
         padding: 2px 14px 14px;
       }
@@ -636,9 +471,6 @@
           src="data:image/png;base64,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"
         /><span class="wordmark">Higgsfield</span><span class="tag">GENERATION NOTIFIER</span>
       </div>
-      <div class="sign">
-        <span class="neon">The Mad <span class="flick">P</span>rompter</span>
-      </div>
 
       <div class="body">
         <div class="statusline" id="statusline">
@@ -795,8 +627,8 @@
         <div class="diag" id="testdiag"></div>
 
         <div class="foot">
-          Higgsfield Generation Notifier <span class="ver">v1.4.0</span> &middot;
-          <span class="ver" id="env">&nbsp;</span><br />The Mad Prompter
+          Higgsfield Generation Notifier <span class="ver">v1.5.0</span> &middot;
+          <span class="ver" id="env">&nbsp;</span>
         </div>
       </div>
     </div>

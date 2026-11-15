@@ -16,7 +16,7 @@
   "use strict";
   if (window.__hfNotifierLoaded) return;
   window.__hfNotifierLoaded = true;
-  const VERSION = "1.4.0";
+  const VERSION = "1.5.0";
   const POLL_MS = 2000; // fallback sweep only — real-time detection is the MutationObserver below
 
   /* ============================ settings ============================ */
