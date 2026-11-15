@@ -7,14 +7,21 @@
 const NTFY_DEFAULT = "https://ntfy.sh";
 
 function localNotify(msg) {
-  chrome.notifications.create("hfn-" + Date.now(), {
-    type: "basic",
-    iconUrl: chrome.runtime.getURL("icon128.png"),
-    title: msg.title || "Higgsfield",
-    message: msg.message || "",
-    priority: 2,
-    requireInteraction: false
-  }, () => { if (chrome.runtime.lastError) console.warn("[HF Notifier] notification blocked:", chrome.runtime.lastError.message); });
+  chrome.notifications.create(
+    "hfn-" + Date.now(),
+    {
+      type: "basic",
+      iconUrl: chrome.runtime.getURL("icon128.png"),
+      title: msg.title || "Higgsfield",
+      message: msg.message || "",
+      priority: 2,
+      requireInteraction: false,
+    },
+    () => {
+      if (chrome.runtime.lastError)
+        console.warn("[HF Notifier] notification blocked:", chrome.runtime.lastError.message);
+    },
+  );
 }
 
 // POST to ntfy using the JSON-publish form (topic in the body) so unicode in the title
@@ -38,10 +45,12 @@ function pushToPhone(msg) {
       title: msg.title || "Higgsfield",
       message: msg.message || "",
       tags: [fail ? "warning" : "white_check_mark"],
-      priority: fail ? 5 : 4
+      priority: fail ? 5 : 4,
     };
     if (msg.url) payload.click = msg.url;
-    ntfyPost(phone, payload).catch((e) => console.warn("[HF Notifier] phone push failed:", e && e.message));
+    ntfyPost(phone, payload).catch((e) =>
+      console.warn("[HF Notifier] phone push failed:", e && e.message),
+    );
   });
 }
 
@@ -58,13 +67,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     chrome.storage.local.get("hfNotif", (o) => {
       const phone = (o && o.hfNotif && o.hfNotif.phone) || {};
       const topic = (phone.topic || "").trim();
-      if (!topic) { sendResponse({ ok: false, error: "no topic set" }); return; }
+      if (!topic) {
+        sendResponse({ ok: false, error: "no topic set" });
+        return;
+      }
       ntfyPost(phone, {
         topic,
         title: "Higgsfield Notifier",
         message: "Test push \u2713 your phone alerts are working.",
         tags: ["bell"],
-        priority: 4
+        priority: 4,
       })
         .then((r) => sendResponse({ ok: r.ok, status: r.status }))
         .catch((e) => sendResponse({ ok: false, error: (e && e.message) || "network error" }));

@@ -1,182 +1,806 @@
-<!DOCTYPE html>
-<html><head><meta charset="utf-8">
-<style>
-  :root{ --green:#D0FE17; --ink:#e8f0d8; }
-  *{box-sizing:border-box;}
-  body{margin:0;width:320px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);
-    background:linear-gradient(180deg,#0a1207 0%,#070d05 100%);position:relative;overflow-x:hidden;}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --green: #d0fe17;
+        --ink: #e8f0d8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 320px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--ink);
+        background: linear-gradient(180deg, #0a1207 0%, #070d05 100%);
+        position: relative;
+        overflow-x: hidden;
+      }
 
-  /* ambient aurora glow blobs — the surface the glass frosts over */
-  .blob{position:fixed;z-index:0;filter:blur(40px);border-radius:50%;pointer-events:none;opacity:.85;}
-  .blob.a{width:300px;height:240px;top:-90px;left:-70px;background:rgba(208,254,23,.40);}
-  .blob.b{width:240px;height:240px;top:250px;right:-90px;background:rgba(40,220,160,.24);}
-  .blob.c{width:260px;height:240px;bottom:-100px;left:20px;background:rgba(120,90,255,.20);}
-  .wrap{position:relative;z-index:1;}
+      /* ambient aurora glow blobs — the surface the glass frosts over */
+      .blob {
+        position: fixed;
+        z-index: 0;
+        filter: blur(40px);
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.85;
+      }
+      .blob.a {
+        width: 300px;
+        height: 240px;
+        top: -90px;
+        left: -70px;
+        background: rgba(208, 254, 23, 0.4);
+      }
+      .blob.b {
+        width: 240px;
+        height: 240px;
+        top: 250px;
+        right: -90px;
+        background: rgba(40, 220, 160, 0.24);
+      }
+      .blob.c {
+        width: 260px;
+        height: 240px;
+        bottom: -100px;
+        left: 20px;
+        background: rgba(120, 90, 255, 0.2);
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+      }
 
-  .brandbar{display:flex;align-items:center;gap:8px;padding:11px 15px;
-    background:linear-gradient(110deg,rgba(208,254,23,.97),rgba(150,240,90,.93));position:sticky;top:0;z-index:5;}
-  .brandbar img{height:17px;}
-  .wordmark{font-weight:800;font-size:15px;letter-spacing:-.02em;color:#0a0d06;}
-  .tag{margin-left:auto;font-size:8px;font-weight:800;letter-spacing:.10em;color:#0a0d06;border:1.5px solid rgba(10,13,6,.5);border-radius:6px;padding:2px 6px;background:rgba(10,13,6,.12);white-space:nowrap;}
+      .brandbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 15px;
+        background: linear-gradient(110deg, rgba(208, 254, 23, 0.97), rgba(150, 240, 90, 0.93));
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      .brandbar img {
+        height: 17px;
+      }
+      .wordmark {
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: -0.02em;
+        color: #0a0d06;
+      }
+      .tag {
+        margin-left: auto;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        color: #0a0d06;
+        border: 1.5px solid rgba(10, 13, 6, 0.5);
+        border-radius: 6px;
+        padding: 2px 6px;
+        background: rgba(10, 13, 6, 0.12);
+        white-space: nowrap;
+      }
 
-  /* ===== NEON SIGNATURE ===== */
-  .sign{display:flex;justify-content:center;padding:13px 0 6px;}
-  .neon{font-family:"Segoe Script","Brush Script MT","Bradley Hand",cursive;font-size:23px;color:#f6ffe2;
-    transform:rotate(-3deg);letter-spacing:.5px;
-    text-shadow:0 0 4px #fff,0 0 8px var(--green),0 0 15px var(--green),0 0 24px rgba(208,254,23,.85),0 0 42px rgba(208,254,23,.5),0 0 70px rgba(208,254,23,.35);
-    animation:neonOn 1.2s ease-out both, retroNeon 4.3s 1.2s infinite;}
-  .neon .flick{animation:brokenLetter 3.1s 1.2s infinite;}
-  @keyframes neonOn{0%{opacity:0;}6%{opacity:1;}8%{opacity:.12;}11%{opacity:1;}14%{opacity:.3;}18%{opacity:1;}24%{opacity:.55;}28%{opacity:1;}100%{opacity:1;}}
-  @keyframes retroNeon{
-    0%,3%{opacity:1;} 3.6%{opacity:.12;} 4.2%{opacity:1;}
-    8%{opacity:1;} 8.6%{opacity:.28;} 9.2%{opacity:1;}
-    37%{opacity:1;} 38%{opacity:.08;} 40.5%{opacity:.08;} 41%{opacity:1;}
-    59%{opacity:1;} 60%{opacity:.4;} 60.6%{opacity:1;} 61.3%{opacity:.5;} 62%{opacity:1;}
-    87%{opacity:1;} 88%{opacity:.1;} 91%{opacity:.1;} 92%{opacity:1;} 100%{opacity:1;}}
-  @keyframes brokenLetter{
-    0%,100%{opacity:1;} 4%{opacity:.1;}5%{opacity:1;}6%{opacity:.1;}8%{opacity:1;}
-    39%{opacity:1;}40%{opacity:.08;}46%{opacity:.08;}47%{opacity:1;}
-    68%{opacity:1;}69%{opacity:.18;}70.5%{opacity:1;}}
-  @media (prefers-reduced-motion:reduce){ .neon,.neon .flick{animation:none;opacity:1;} }
+      /* ===== NEON SIGNATURE ===== */
+      .sign {
+        display: flex;
+        justify-content: center;
+        padding: 13px 0 6px;
+      }
+      .neon {
+        font-family: "Segoe Script", "Brush Script MT", "Bradley Hand", cursive;
+        font-size: 23px;
+        color: #f6ffe2;
+        transform: rotate(-3deg);
+        letter-spacing: 0.5px;
+        text-shadow:
+          0 0 4px #fff,
+          0 0 8px var(--green),
+          0 0 15px var(--green),
+          0 0 24px rgba(208, 254, 23, 0.85),
+          0 0 42px rgba(208, 254, 23, 0.5),
+          0 0 70px rgba(208, 254, 23, 0.35);
+        animation:
+          neonOn 1.2s ease-out both,
+          retroNeon 4.3s 1.2s infinite;
+      }
+      .neon .flick {
+        animation: brokenLetter 3.1s 1.2s infinite;
+      }
+      @keyframes neonOn {
+        0% {
+          opacity: 0;
+        }
+        6% {
+          opacity: 1;
+        }
+        8% {
+          opacity: 0.12;
+        }
+        11% {
+          opacity: 1;
+        }
+        14% {
+          opacity: 0.3;
+        }
+        18% {
+          opacity: 1;
+        }
+        24% {
+          opacity: 0.55;
+        }
+        28% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      @keyframes retroNeon {
+        0%,
+        3% {
+          opacity: 1;
+        }
+        3.6% {
+          opacity: 0.12;
+        }
+        4.2% {
+          opacity: 1;
+        }
+        8% {
+          opacity: 1;
+        }
+        8.6% {
+          opacity: 0.28;
+        }
+        9.2% {
+          opacity: 1;
+        }
+        37% {
+          opacity: 1;
+        }
+        38% {
+          opacity: 0.08;
+        }
+        40.5% {
+          opacity: 0.08;
+        }
+        41% {
+          opacity: 1;
+        }
+        59% {
+          opacity: 1;
+        }
+        60% {
+          opacity: 0.4;
+        }
+        60.6% {
+          opacity: 1;
+        }
+        61.3% {
+          opacity: 0.5;
+        }
+        62% {
+          opacity: 1;
+        }
+        87% {
+          opacity: 1;
+        }
+        88% {
+          opacity: 0.1;
+        }
+        91% {
+          opacity: 0.1;
+        }
+        92% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      @keyframes brokenLetter {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        4% {
+          opacity: 0.1;
+        }
+        5% {
+          opacity: 1;
+        }
+        6% {
+          opacity: 0.1;
+        }
+        8% {
+          opacity: 1;
+        }
+        39% {
+          opacity: 1;
+        }
+        40% {
+          opacity: 0.08;
+        }
+        46% {
+          opacity: 0.08;
+        }
+        47% {
+          opacity: 1;
+        }
+        68% {
+          opacity: 1;
+        }
+        69% {
+          opacity: 0.18;
+        }
+        70.5% {
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .neon,
+        .neon .flick {
+          animation: none;
+          opacity: 1;
+        }
+      }
 
-  .body{padding:2px 14px 14px;}
+      .body {
+        padding: 2px 14px 14px;
+      }
 
-  /* live status strip */
-  .statusline{display:flex;align-items:center;gap:8px;margin:8px 2px 2px;font-size:12px;font-weight:600;color:#cfe0b0;}
-  .dot{width:8px;height:8px;border-radius:50%;background:#5b6b45;flex:0 0 auto;}
-  .dot.live{background:#7dff3a;box-shadow:0 0 10px rgba(125,255,58,.7);animation:pulse 1.4s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
-  .warn{display:none;background:rgba(120,60,20,.34);color:#ffd6a6;border:1px solid rgba(255,196,80,.28);border-radius:11px;padding:9px 11px;font-size:11px;margin:9px 0 2px;backdrop-filter:blur(10px);line-height:1.45;}
+      /* live status strip */
+      .statusline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 2px 2px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #cfe0b0;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #5b6b45;
+        flex: 0 0 auto;
+      }
+      .dot.live {
+        background: #7dff3a;
+        box-shadow: 0 0 10px rgba(125, 255, 58, 0.7);
+        animation: pulse 1.4s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+      .warn {
+        display: none;
+        background: rgba(120, 60, 20, 0.34);
+        color: #ffd6a6;
+        border: 1px solid rgba(255, 196, 80, 0.28);
+        border-radius: 11px;
+        padding: 9px 11px;
+        font-size: 11px;
+        margin: 9px 0 2px;
+        backdrop-filter: blur(10px);
+        line-height: 1.45;
+      }
 
-  /* frosted cards */
-  .card{position:relative;background:rgba(48,72,24,.30);border:1px solid rgba(208,254,23,.18);border-radius:15px;padding:12px;margin-top:11px;
-    backdrop-filter:blur(20px) saturate(170%);-webkit-backdrop-filter:blur(20px) saturate(170%);
-    box-shadow:0 8px 26px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.14);}
-  .lbl{font-size:10.5px;color:#bcd089;margin-bottom:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+      /* frosted cards */
+      .card {
+        position: relative;
+        background: rgba(48, 72, 24, 0.3);
+        border: 1px solid rgba(208, 254, 23, 0.18);
+        border-radius: 15px;
+        padding: 12px;
+        margin-top: 11px;
+        backdrop-filter: blur(20px) saturate(170%);
+        -webkit-backdrop-filter: blur(20px) saturate(170%);
+        box-shadow:
+          0 8px 26px rgba(0, 0, 0, 0.42),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      }
+      .lbl {
+        font-size: 10.5px;
+        color: #bcd089;
+        margin-bottom: 10px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
 
-  /* master card */
-  .master{display:flex;align-items:center;gap:11px;}
-  .master .mtext{flex:1;} .master .mname{font-size:14px;font-weight:800;color:#f1f8e4;letter-spacing:-.01em;}
-  .master .mstate{font-size:11px;font-weight:700;margin-top:1px;} .mstate.mon{color:var(--green);} .mstate.moff{color:#9aa888;}
+      /* master card */
+      .master {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      .master .mtext {
+        flex: 1;
+      }
+      .master .mname {
+        font-size: 14px;
+        font-weight: 800;
+        color: #f1f8e4;
+        letter-spacing: -0.01em;
+      }
+      .master .mstate {
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 1px;
+      }
+      .mstate.mon {
+        color: var(--green);
+      }
+      .mstate.moff {
+        color: #9aa888;
+      }
 
-  /* toggle rows */
-  .tog{display:flex;align-items:center;gap:10px;padding:9px 9px;border-radius:11px;background:rgba(20,30,10,.42);border:1px solid rgba(208,254,23,.1);margin-bottom:7px;cursor:pointer;}
-  .tog:last-child{margin-bottom:0;}
-  .tlabel{flex:1;min-width:0;} .tname{display:block;font-size:12.5px;font-weight:600;color:#e8f0d8;} .tsub{display:block;font-size:9.5px;color:#8a9a72;margin-top:1px;}
-  .ico{width:22px;height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;}
+      /* toggle rows */
+      .tog {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 9px;
+        border-radius: 11px;
+        background: rgba(20, 30, 10, 0.42);
+        border: 1px solid rgba(208, 254, 23, 0.1);
+        margin-bottom: 7px;
+        cursor: pointer;
+      }
+      .tog:last-child {
+        margin-bottom: 0;
+      }
+      .tlabel {
+        flex: 1;
+        min-width: 0;
+      }
+      .tname {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #e8f0d8;
+      }
+      .tsub {
+        display: block;
+        font-size: 9.5px;
+        color: #8a9a72;
+        margin-top: 1px;
+      }
+      .ico {
+        width: 22px;
+        height: 22px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+      }
 
-  /* switch */
-  .sw{position:absolute;opacity:0;width:0;height:0;}
-  .track{width:40px;height:23px;border-radius:999px;background:rgba(10,16,6,.75);border:1px solid rgba(208,254,23,.22);position:relative;transition:background .18s,border-color .18s;flex:0 0 auto;}
-  .knob{position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#8a9a72;transition:left .18s,background .18s;box-shadow:0 1px 3px rgba(0,0,0,.55);}
-  .sw:checked + .track{background:linear-gradient(180deg,#e3ff5c,#c4f400);border-color:transparent;box-shadow:0 0 14px rgba(208,254,23,.45);}
-  .sw:checked + .track .knob{left:19px;background:#0a0d06;}
-  .sw:focus-visible + .track{outline:2px solid #fff;outline-offset:2px;}
-  .master .track{width:48px;height:27px;} .master .knob{width:21px;height:21px;} .master .sw:checked + .track .knob{left:23px;}
+      /* switch */
+      .sw {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .track {
+        width: 40px;
+        height: 23px;
+        border-radius: 999px;
+        background: rgba(10, 16, 6, 0.75);
+        border: 1px solid rgba(208, 254, 23, 0.22);
+        position: relative;
+        transition:
+          background 0.18s,
+          border-color 0.18s;
+        flex: 0 0 auto;
+      }
+      .knob {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 17px;
+        height: 17px;
+        border-radius: 50%;
+        background: #8a9a72;
+        transition:
+          left 0.18s,
+          background 0.18s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+      }
+      .sw:checked + .track {
+        background: linear-gradient(180deg, #e3ff5c, #c4f400);
+        border-color: transparent;
+        box-shadow: 0 0 14px rgba(208, 254, 23, 0.45);
+      }
+      .sw:checked + .track .knob {
+        left: 19px;
+        background: #0a0d06;
+      }
+      .sw:focus-visible + .track {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+      .master .track {
+        width: 48px;
+        height: 27px;
+      }
+      .master .knob {
+        width: 21px;
+        height: 21px;
+      }
+      .master .sw:checked + .track .knob {
+        left: 23px;
+      }
 
-  #subcards{transition:opacity .18s;}
-  #subcards.dim{opacity:.4;pointer-events:none;filter:saturate(.5);}
+      #subcards {
+        transition: opacity 0.18s;
+      }
+      #subcards.dim {
+        opacity: 0.4;
+        pointer-events: none;
+        filter: saturate(0.5);
+      }
 
-  .prevlbl{font-size:10.5px;color:#8a9a72;margin:11px 2px 8px;font-weight:600;letter-spacing:.02em;}
-  .prevrow{display:flex;flex-wrap:wrap;gap:6px;}
-  .prev{display:inline-flex;align-items:center;gap:4px;background:rgba(208,254,23,.08);color:#dcecb6;border:1px solid rgba(208,254,23,.22);border-radius:9px;padding:6px 9px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s,transform .05s;}
-  .prev:hover{background:rgba(208,254,23,.16);} .prev:active{transform:scale(.96);}
-  .prev.fail{color:#ffb4b4;border-color:rgba(255,120,120,.3);background:rgba(255,120,120,.08);} .prev.fail:hover{background:rgba(255,120,120,.16);}
-  .prev:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+      .prevlbl {
+        font-size: 10.5px;
+        color: #8a9a72;
+        margin: 11px 2px 8px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .prevrow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .prev {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(208, 254, 23, 0.08);
+        color: #dcecb6;
+        border: 1px solid rgba(208, 254, 23, 0.22);
+        border-radius: 9px;
+        padding: 6px 9px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.05s;
+      }
+      .prev:hover {
+        background: rgba(208, 254, 23, 0.16);
+      }
+      .prev:active {
+        transform: scale(0.96);
+      }
+      .prev.fail {
+        color: #ffb4b4;
+        border-color: rgba(255, 120, 120, 0.3);
+        background: rgba(255, 120, 120, 0.08);
+      }
+      .prev.fail:hover {
+        background: rgba(255, 120, 120, 0.16);
+      }
+      .prev:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
 
-  .fieldlbl{font-size:10.5px;color:#bcd089;font-weight:700;letter-spacing:.03em;margin:12px 2px 6px;}
-  .fieldrow{display:flex;gap:6px;align-items:center;}
-  .txt{flex:1;min-width:0;background:rgba(10,14,6,.6);color:var(--ink);border:1px solid rgba(208,254,23,.22);border-radius:9px;padding:8px 10px;font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.01em;}
-  .txt:focus{outline:none;border-color:rgba(208,254,23,.5);box-shadow:0 0 0 2px rgba(208,254,23,.15);}
-  .txt:disabled{opacity:.6;}
-  .mini{flex:0 0 auto;width:34px;height:34px;background:rgba(208,254,23,.1);color:var(--green);border:1px solid rgba(208,254,23,.25);border-radius:9px;font-size:15px;cursor:pointer;line-height:1;}
-  .mini:hover{background:rgba(208,254,23,.18);} .mini:active{transform:scale(.94);}
-  .phint{font-size:10px;color:#9aa888;line-height:1.5;margin:8px 2px 0;} .phint b{color:#cfe0b0;}
-  .phint2{font-size:9.5px;color:#7d8a6a;line-height:1.5;margin:8px 2px 0;} .phint2 b{color:#9aa888;}
-  .test.alt{color:#bfe0ff;border-color:rgba(120,180,255,.35);background:rgba(120,180,255,.08);} .test.alt:hover{background:rgba(120,180,255,.16);}
-  #pconfig{transition:opacity .18s;} #pconfig.off{opacity:.45;pointer-events:none;}
+      .fieldlbl {
+        font-size: 10.5px;
+        color: #bcd089;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin: 12px 2px 6px;
+      }
+      .fieldrow {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .txt {
+        flex: 1;
+        min-width: 0;
+        background: rgba(10, 14, 6, 0.6);
+        color: var(--ink);
+        border: 1px solid rgba(208, 254, 23, 0.22);
+        border-radius: 9px;
+        padding: 8px 10px;
+        font-size: 12px;
+        font-family: ui-monospace, Menlo, monospace;
+        letter-spacing: 0.01em;
+      }
+      .txt:focus {
+        outline: none;
+        border-color: rgba(208, 254, 23, 0.5);
+        box-shadow: 0 0 0 2px rgba(208, 254, 23, 0.15);
+      }
+      .txt:disabled {
+        opacity: 0.6;
+      }
+      .mini {
+        flex: 0 0 auto;
+        width: 34px;
+        height: 34px;
+        background: rgba(208, 254, 23, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(208, 254, 23, 0.25);
+        border-radius: 9px;
+        font-size: 15px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .mini:hover {
+        background: rgba(208, 254, 23, 0.18);
+      }
+      .mini:active {
+        transform: scale(0.94);
+      }
+      .phint {
+        font-size: 10px;
+        color: #9aa888;
+        line-height: 1.5;
+        margin: 8px 2px 0;
+      }
+      .phint b {
+        color: #cfe0b0;
+      }
+      .phint2 {
+        font-size: 9.5px;
+        color: #7d8a6a;
+        line-height: 1.5;
+        margin: 8px 2px 0;
+      }
+      .phint2 b {
+        color: #9aa888;
+      }
+      .test.alt {
+        color: #bfe0ff;
+        border-color: rgba(120, 180, 255, 0.35);
+        background: rgba(120, 180, 255, 0.08);
+      }
+      .test.alt:hover {
+        background: rgba(120, 180, 255, 0.16);
+      }
+      #pconfig {
+        transition: opacity 0.18s;
+      }
+      #pconfig.off {
+        opacity: 0.45;
+        pointer-events: none;
+      }
 
-  .test{width:100%;margin-top:12px;background:rgba(208,254,23,.08);color:var(--green);border:1px solid rgba(208,254,23,.3);border-radius:12px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(10px);}
-  .test:hover{background:rgba(208,254,23,.15);}
-  .diag{font-size:10.5px;line-height:1.5;color:#9aa888;margin:8px 2px 0;min-height:1px;}
-  .diag b{color:#e8f0d8;}
+      .test {
+        width: 100%;
+        margin-top: 12px;
+        background: rgba(208, 254, 23, 0.08);
+        color: var(--green);
+        border: 1px solid rgba(208, 254, 23, 0.3);
+        border-radius: 12px;
+        padding: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+      }
+      .test:hover {
+        background: rgba(208, 254, 23, 0.15);
+      }
+      .diag {
+        font-size: 10.5px;
+        line-height: 1.5;
+        color: #9aa888;
+        margin: 8px 2px 0;
+        min-height: 1px;
+      }
+      .diag b {
+        color: #e8f0d8;
+      }
 
-  .foot{margin-top:13px;text-align:center;font-size:10px;color:#7d8a6a;letter-spacing:.02em;}
-  .ver{color:#9aa888;}
-</style></head>
-<body>
-  <span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
-  <div class="wrap">
-    <div class="brandbar"><img alt="" src="data:image/png;base64,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"/><span class="wordmark">Higgsfield</span><span class="tag">GENERATION NOTIFIER</span></div>
-    <div class="sign"><span class="neon">The Mad <span class="flick">P</span>rompter</span></div>
-
-    <div class="body">
-      <div class="statusline" id="statusline"><span class="dot" id="statusdot"></span><span id="statustext">Checking the page&hellip;</span></div>
-      <div class="warn" id="warn"></div>
-
-      <div class="card master">
-        <div class="mtext"><div class="mname">Notifications</div><div class="mstate mon" id="masterstate">On</div></div>
-        <label class="swwrap" style="display:flex;align-items:center;"><input type="checkbox" class="sw" id="mMaster"><span class="track"><span class="knob"></span></span></label>
+      .foot {
+        margin-top: 13px;
+        text-align: center;
+        font-size: 10px;
+        color: #7d8a6a;
+        letter-spacing: 0.02em;
+      }
+      .ver {
+        color: #9aa888;
+      }
+    </style>
+  </head>
+  <body>
+    <span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+    <div class="wrap">
+      <div class="brandbar">
+        <img
+          alt=""
+          src="data:image/png;base64,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"
+        /><span class="wordmark">Higgsfield</span><span class="tag">GENERATION NOTIFIER</span>
+      </div>
+      <div class="sign">
+        <span class="neon">The Mad <span class="flick">P</span>rompter</span>
       </div>
 
-      <div id="subcards">
-        <div class="card">
-          <div class="lbl">Notify me about</div>
-          <label class="tog"><span class="ico">&#127909;</span><span class="tlabel"><span class="tname">Videos</span><span class="tsub">Clips from any video tool</span></span><input type="checkbox" class="sw" id="tVideo"><span class="track"><span class="knob"></span></span></label>
-          <label class="tog"><span class="ico">&#128444;&#65039;</span><span class="tlabel"><span class="tname">Images</span><span class="tsub">Stills, characters, upscales</span></span><input type="checkbox" class="sw" id="tImage"><span class="track"><span class="knob"></span></span></label>
-          <label class="tog"><span class="ico">&#127925;</span><span class="tlabel"><span class="tname">Audio</span><span class="tsub">Speech &amp; voice</span></span><input type="checkbox" class="sw" id="tAudio"><span class="track"><span class="knob"></span></span></label>
-          <label class="tog"><span class="ico">&#129513;</span><span class="tlabel"><span class="tname">3D</span><span class="tsub">Meshes &amp; models</span></span><input type="checkbox" class="sw" id="t3d"><span class="track"><span class="knob"></span></span></label>
-          <label class="tog"><span class="ico">&#10024;</span><span class="tlabel"><span class="tname">Everything else</span><span class="tsub">Any other generation type</span></span><input type="checkbox" class="sw" id="tOther"><span class="track"><span class="knob"></span></span></label>
+      <div class="body">
+        <div class="statusline" id="statusline">
+          <span class="dot" id="statusdot"></span
+          ><span id="statustext">Checking the page&hellip;</span>
         </div>
+        <div class="warn" id="warn"></div>
 
-        <div class="card">
-          <div class="lbl">When to alert</div>
-          <label class="tog"><span class="ico">&#9989;</span><span class="tlabel"><span class="tname">When a generation finishes</span></span><input type="checkbox" class="sw" id="eDone"><span class="track"><span class="knob"></span></span></label>
-          <label class="tog"><span class="ico">&#9888;&#65039;</span><span class="tlabel"><span class="tname">When one fails</span></span><input type="checkbox" class="sw" id="eFail"><span class="track"><span class="knob"></span></span></label>
-        </div>
-
-        <div class="card">
-          <div class="lbl">Background</div>
-          <label class="tog"><span class="ico">&#128268;</span><span class="tlabel"><span class="tname">Keep watching when minimized</span><span class="tsub">Instant alerts even in the background. Adds a silent track &mdash; you may see a speaker icon on the tab.</span></span><input type="checkbox" class="sw" id="kAlive"><span class="track"><span class="knob"></span></span></label>
-        </div>
-
-        <div class="card">
-          <div class="lbl">Sound</div>
-          <label class="tog"><span class="ico">&#128266;</span><span class="tlabel"><span class="tname">Play a chime</span><span class="tsub">A different tone for each type</span></span><input type="checkbox" class="sw" id="sChime"><span class="track"><span class="knob"></span></span></label>
-          <div class="prevlbl">Preview each sound</div>
-          <div class="prevrow">
-            <button class="prev" data-snd="video">&#127909; Video</button>
-            <button class="prev" data-snd="image">&#128444;&#65039; Image</button>
-            <button class="prev" data-snd="audio">&#127925; Audio</button>
-            <button class="prev" data-snd="3d">&#129513; 3D</button>
-            <button class="prev" data-snd="other">&#10024; Other</button>
-            <button class="prev fail" data-snd="fail">&#9888;&#65039; Fail</button>
+        <div class="card master">
+          <div class="mtext">
+            <div class="mname">Notifications</div>
+            <div class="mstate mon" id="masterstate">On</div>
           </div>
+          <label class="swwrap" style="display: flex; align-items: center"
+            ><input type="checkbox" class="sw" id="mMaster" /><span class="track"
+              ><span class="knob"></span></span
+          ></label>
         </div>
 
-        <div class="card">
-          <div class="lbl">Phone alerts (ntfy)</div>
-          <label class="tog"><span class="ico">&#128241;</span><span class="tlabel"><span class="tname">Send to my phone</span><span class="tsub">Push via ntfy while your computer runs</span></span><input type="checkbox" class="sw" id="pOn"><span class="track"><span class="knob"></span></span></label>
-          <div id="pconfig">
-            <div class="fieldlbl">Your secret topic</div>
-            <div class="fieldrow">
-              <input type="text" id="pTopic" class="txt" placeholder="hf-&hellip;" spellcheck="false" autocomplete="off" autocapitalize="off">
-              <button class="mini" id="pRand" title="Generate a new random topic">&#8635;</button>
+        <div id="subcards">
+          <div class="card">
+            <div class="lbl">Notify me about</div>
+            <label class="tog"
+              ><span class="ico">&#127909;</span
+              ><span class="tlabel"
+                ><span class="tname">Videos</span
+                ><span class="tsub">Clips from any video tool</span></span
+              ><input type="checkbox" class="sw" id="tVideo" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <label class="tog"
+              ><span class="ico">&#128444;&#65039;</span
+              ><span class="tlabel"
+                ><span class="tname">Images</span
+                ><span class="tsub">Stills, characters, upscales</span></span
+              ><input type="checkbox" class="sw" id="tImage" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <label class="tog"
+              ><span class="ico">&#127925;</span
+              ><span class="tlabel"
+                ><span class="tname">Audio</span><span class="tsub">Speech &amp; voice</span></span
+              ><input type="checkbox" class="sw" id="tAudio" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <label class="tog"
+              ><span class="ico">&#129513;</span
+              ><span class="tlabel"
+                ><span class="tname">3D</span><span class="tsub">Meshes &amp; models</span></span
+              ><input type="checkbox" class="sw" id="t3d" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <label class="tog"
+              ><span class="ico">&#10024;</span
+              ><span class="tlabel"
+                ><span class="tname">Everything else</span
+                ><span class="tsub">Any other generation type</span></span
+              ><input type="checkbox" class="sw" id="tOther" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+          </div>
+
+          <div class="card">
+            <div class="lbl">When to alert</div>
+            <label class="tog"
+              ><span class="ico">&#9989;</span
+              ><span class="tlabel"><span class="tname">When a generation finishes</span></span
+              ><input type="checkbox" class="sw" id="eDone" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <label class="tog"
+              ><span class="ico">&#9888;&#65039;</span
+              ><span class="tlabel"><span class="tname">When one fails</span></span
+              ><input type="checkbox" class="sw" id="eFail" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+          </div>
+
+          <div class="card">
+            <div class="lbl">Background</div>
+            <label class="tog"
+              ><span class="ico">&#128268;</span
+              ><span class="tlabel"
+                ><span class="tname">Keep watching when minimized</span
+                ><span class="tsub"
+                  >Instant alerts even in the background. Adds a silent track &mdash; you may see a
+                  speaker icon on the tab.</span
+                ></span
+              ><input type="checkbox" class="sw" id="kAlive" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+          </div>
+
+          <div class="card">
+            <div class="lbl">Sound</div>
+            <label class="tog"
+              ><span class="ico">&#128266;</span
+              ><span class="tlabel"
+                ><span class="tname">Play a chime</span
+                ><span class="tsub">A different tone for each type</span></span
+              ><input type="checkbox" class="sw" id="sChime" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <div class="prevlbl">Preview each sound</div>
+            <div class="prevrow">
+              <button class="prev" data-snd="video">&#127909; Video</button>
+              <button class="prev" data-snd="image">&#128444;&#65039; Image</button>
+              <button class="prev" data-snd="audio">&#127925; Audio</button>
+              <button class="prev" data-snd="3d">&#129513; 3D</button>
+              <button class="prev" data-snd="other">&#10024; Other</button>
+              <button class="prev fail" data-snd="fail">&#9888;&#65039; Fail</button>
             </div>
-            <div class="phint">In the ntfy app, tap <b>+</b> and subscribe to <b>this exact topic</b>. Pick something only you know &mdash; anyone with the name can read your alerts.</div>
-            <button class="test alt" id="pTest">Send a test to my phone</button>
-            <div class="diag" id="pdiag"></div>
-            <div class="phint2">No account needed. Get the <b>ntfy</b> app free from the App Store, then flip this on.</div>
+          </div>
+
+          <div class="card">
+            <div class="lbl">Phone alerts (ntfy)</div>
+            <label class="tog"
+              ><span class="ico">&#128241;</span
+              ><span class="tlabel"
+                ><span class="tname">Send to my phone</span
+                ><span class="tsub">Push via ntfy while your computer runs</span></span
+              ><input type="checkbox" class="sw" id="pOn" /><span class="track"
+                ><span class="knob"></span></span
+            ></label>
+            <div id="pconfig">
+              <div class="fieldlbl">Your secret topic</div>
+              <div class="fieldrow">
+                <input
+                  type="text"
+                  id="pTopic"
+                  class="txt"
+                  placeholder="hf-&hellip;"
+                  spellcheck="false"
+                  autocomplete="off"
+                  autocapitalize="off"
+                />
+                <button class="mini" id="pRand" title="Generate a new random topic">&#8635;</button>
+              </div>
+              <div class="phint">
+                In the ntfy app, tap <b>+</b> and subscribe to <b>this exact topic</b>. Pick
+                something only you know &mdash; anyone with the name can read your alerts.
+              </div>
+              <button class="test alt" id="pTest">Send a test to my phone</button>
+              <div class="diag" id="pdiag"></div>
+              <div class="phint2">
+                No account needed. Get the <b>ntfy</b> app free from the App Store, then flip this
+                on.
+              </div>
+            </div>
           </div>
         </div>
+
+        <button class="test" id="btnTest">Send a test notification</button>
+        <div class="diag" id="testdiag"></div>
+
+        <div class="foot">
+          Higgsfield Generation Notifier <span class="ver">v1.4.0</span> &middot;
+          <span class="ver" id="env">&nbsp;</span><br />The Mad Prompter
+        </div>
       </div>
-
-      <button class="test" id="btnTest">Send a test notification</button>
-      <div class="diag" id="testdiag"></div>
-
-      <div class="foot">Higgsfield Generation Notifier <span class="ver">v1.4.0</span> &middot; <span class="ver" id="env">&nbsp;</span><br>The Mad Prompter</div>
     </div>
-  </div>
-  <script src="sounds.js"></script>
-  <script src="popup.js"></script>
-</body></html>
+    <script src="sounds.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -7,12 +7,14 @@ generation finishes or fails — videos, images, audio, 3D, anything.
 No queue, no auto-clicking, no prompt writing, no credits. It only watches and notifies.
 
 ## How it knows
+
 It reads Higgsfield's own per-tile job status straight from the page
 (`data-asset-id` / `data-job-status`) — the same ground-truth signal the Autopilot
 uses — then classifies each finished asset by media type so the popup checkmarks can
 filter what you get pinged about.
 
 ## Popup controls
+
 - **Notifications** — master on/off.
 - **Notify me about** — Videos · Images · Audio · 3D · Everything else.
 - **When to alert** — when a generation finishes · when one fails.
@@ -21,6 +23,7 @@ filter what you get pinged about.
   Chrome accepted it or Windows is hiding it (with the fix).
 
 ## Phone alerts (iPhone via ntfy)
+
 Optional. Get a push on your phone when a generation finishes or fails — handy for
 overnight or away-from-desk batches.
 
@@ -28,6 +31,7 @@ overnight or away-from-desk batches.
 Higgsfield tab must still be running. It does not let you close the laptop and walk away.
 
 Setup:
+
 1. Install the free **ntfy** app on your iPhone (App Store).
 2. In the popup, open **Phone alerts (ntfy)** and switch **Send to my phone** on — a
    secret topic is generated for you (or type your own; the ↻ button re-rolls it).
@@ -38,6 +42,7 @@ Keep the topic private: anyone who knows the name can read your alerts. The phon
 respects the same type/event switches as your desktop alerts.
 
 ## Install (Chrome, Manifest V3)
+
 1. Go to `chrome://extensions`, enable **Developer mode** (top right).
 2. Remove any older copy of this extension first.
 3. **Load unpacked** → select this `higgsfield-notifier` folder.
@@ -45,6 +50,7 @@ respects the same type/event switches as your desktop alerts.
 5. Open the popup — the version at the bottom should read **v1.2.0**.
 
 ## Note on detection coverage
+
 Video and image completion/failure ride on the exact model already proven in
 Autopilot. Audio and 3D detection reuse the same status attributes plus media-type
 sniffing, but those pages haven't been battle-tested yet — if a type doesn't fire,

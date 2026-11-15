@@ -26,10 +26,12 @@
     onFail: true,
     sound: true,
     keepAlive: false,
-    types: { video: true, image: true, audio: true, "3d": true, other: true }
+    types: { video: true, image: true, audio: true, "3d": true, other: true },
   };
   let CFG = clone(DEFAULTS);
-  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function clone(o) {
+    return JSON.parse(JSON.stringify(o));
+  }
   function mergeCfg(v) {
     const out = clone(DEFAULTS);
     if (v && typeof v === "object") {
@@ -43,9 +45,17 @@
     return out;
   }
   try {
-    chrome.storage.local.get("hfNotif", (o) => { if (o && o.hfNotif) { CFG = mergeCfg(o.hfNotif); applyKeepAlive(); } });
+    chrome.storage.local.get("hfNotif", (o) => {
+      if (o && o.hfNotif) {
+        CFG = mergeCfg(o.hfNotif);
+        applyKeepAlive();
+      }
+    });
     chrome.storage.onChanged.addListener((ch, area) => {
-      if (area === "local" && ch.hfNotif) { CFG = mergeCfg(ch.hfNotif.newValue); applyKeepAlive(); }
+      if (area === "local" && ch.hfNotif) {
+        CFG = mergeCfg(ch.hfNotif.newValue);
+        applyKeepAlive();
+      }
     });
   } catch (e) {}
 
@@ -53,16 +63,64 @@
      Confirmed live: queued, in_progress (working) | nsfw (terminal failure).
      Known working/failed sets are explicit; any OTHER terminal status counts as a
      success, but only once real media for that asset is actually on the page. */
-  const JOB_WORKING = new Set(["queued", "in_queue", "pending", "starting", "preparing", "processing", "in_progress", "running", "generating", "rendering", "uploading", "enqueued", "created", "initializing", "waiting"]);
-  const JOB_FAILED  = new Set(["nsfw", "failed", "error", "errored", "moderated", "rejected", "blocked", "canceled", "cancelled", "timeout", "timed_out", "declined", "content_moderated", "content_moderation"]);
-  function classify(st) { if (JOB_WORKING.has(st)) return "working"; if (JOB_FAILED.has(st)) return "failed"; if (!st) return "unknown"; return "success"; }
-  function esc(id) { return (window.CSS && CSS.escape) ? CSS.escape(id) : id; }
-  function cardFor(id) { try { return document.querySelector('[data-asset-id="' + esc(id) + '"]'); } catch (e) { return [...document.querySelectorAll("[data-asset-id]")].find(x => x.getAttribute("data-asset-id") === id) || null; } }
+  const JOB_WORKING = new Set([
+    "queued",
+    "in_queue",
+    "pending",
+    "starting",
+    "preparing",
+    "processing",
+    "in_progress",
+    "running",
+    "generating",
+    "rendering",
+    "uploading",
+    "enqueued",
+    "created",
+    "initializing",
+    "waiting",
+  ]);
+  const JOB_FAILED = new Set([
+    "nsfw",
+    "failed",
+    "error",
+    "errored",
+    "moderated",
+    "rejected",
+    "blocked",
+    "canceled",
+    "cancelled",
+    "timeout",
+    "timed_out",
+    "declined",
+    "content_moderated",
+    "content_moderation",
+  ]);
+  function classify(st) {
+    if (JOB_WORKING.has(st)) return "working";
+    if (JOB_FAILED.has(st)) return "failed";
+    if (!st) return "unknown";
+    return "success";
+  }
+  function esc(id) {
+    return window.CSS && CSS.escape ? CSS.escape(id) : id;
+  }
+  function cardFor(id) {
+    try {
+      return document.querySelector('[data-asset-id="' + esc(id) + '"]');
+    } catch (e) {
+      return (
+        [...document.querySelectorAll("[data-asset-id]")].find(
+          (x) => x.getAttribute("data-asset-id") === id,
+        ) || null
+      );
+    }
+  }
 
   /* ==================== media-type classification ==================== */
   const RE_VIDEO = /\.(mp4|webm|mov|m4v)(\?|#|$)/i;
   const RE_AUDIO = /\.(mp3|wav|m4a|ogg|oga|flac|aac)(\?|#|$)/i;
-  const RE_3D    = /\.(glb|gltf|usdz|obj|fbx|ply|stl)(\?|#|$)/i;
+  const RE_3D = /\.(glb|gltf|usdz|obj|fbx|ply|stl)(\?|#|$)/i;
   const RE_IMAGE = /\.(png|jpe?g|webp|gif|avif|svg)(\?|#|$)/i;
 
   function urlType(u) {
@@ -86,19 +144,36 @@
   // gather media urls that reference an asset id, and note which element kinds appear
   function scanAsset(id) {
     const found = { urls: [], hasVideo: false, hasAudio: false, has3d: false, hasImg: false };
-    const push = (u) => { if (u && u.indexOf("data:") !== 0 && u.indexOf(id) >= 0) found.urls.push(u); };
+    const push = (u) => {
+      if (u && u.indexOf("data:") !== 0 && u.indexOf(id) >= 0) found.urls.push(u);
+    };
     const card = cardFor(id);
     if (card) {
-      card.querySelectorAll("video").forEach(v => { found.hasVideo = true; push(v.currentSrc || v.src || ""); if (v.poster) push(v.poster); v.querySelectorAll("source").forEach(s => push(s.src || s.getAttribute("src") || "")); });
-      card.querySelectorAll("audio").forEach(a => { found.hasAudio = true; push(a.currentSrc || a.src || ""); a.querySelectorAll("source").forEach(s => push(s.src || s.getAttribute("src") || "")); });
-      card.querySelectorAll("img").forEach(im => { found.hasImg = true; push(im.currentSrc || im.src || ""); });
+      card.querySelectorAll("video").forEach((v) => {
+        found.hasVideo = true;
+        push(v.currentSrc || v.src || "");
+        if (v.poster) push(v.poster);
+        v.querySelectorAll("source").forEach((s) => push(s.src || s.getAttribute("src") || ""));
+      });
+      card.querySelectorAll("audio").forEach((a) => {
+        found.hasAudio = true;
+        push(a.currentSrc || a.src || "");
+        a.querySelectorAll("source").forEach((s) => push(s.src || s.getAttribute("src") || ""));
+      });
+      card.querySelectorAll("img").forEach((im) => {
+        found.hasImg = true;
+        push(im.currentSrc || im.src || "");
+      });
       if (card.querySelector("model-viewer, canvas")) found.has3d = true;
-      card.querySelectorAll("a[href]").forEach(a => push(a.getAttribute("href") || ""));
-      card.querySelectorAll('[style*="background-image"]').forEach(el => { const m = /url\(["']?([^"')]+)["']?\)/.exec(getComputedStyle(el).backgroundImage || ""); if (m) push(m[1]); });
+      card.querySelectorAll("a[href]").forEach((a) => push(a.getAttribute("href") || ""));
+      card.querySelectorAll('[style*="background-image"]').forEach((el) => {
+        const m = /url\(["']?([^"')]+)["']?\)/.exec(getComputedStyle(el).backgroundImage || "");
+        if (m) push(m[1]);
+      });
     }
     if (!found.urls.length) {
       // fallback: the finished media may not be inside the original tile — scan the grid
-      document.querySelectorAll("video, audio, img, source, a[href]").forEach(el => {
+      document.querySelectorAll("video, audio, img, source, a[href]").forEach((el) => {
         const u = el.currentSrc || el.src || (el.getAttribute && el.getAttribute("href")) || "";
         if (u && u.indexOf(id) >= 0) {
           push(u);
@@ -114,15 +189,26 @@
   function classifyAsset(id) {
     const s = scanAsset(id);
     let ut = "";
-    for (const u of s.urls) { const t = urlType(u); if (t) { ut = t; if (t !== "image") break; } } // prefer a real clip/audio/3d over a thumbnail image
+    for (const u of s.urls) {
+      const t = urlType(u);
+      if (t) {
+        ut = t;
+        if (t !== "image") break;
+      }
+    } // prefer a real clip/audio/3d over a thumbnail image
     if (s.hasVideo || ut === "video") return "video";
     if (s.hasAudio || ut === "audio") return "audio";
     if (s.has3d || ut === "3d") return "3d";
     if (ut === "image") return "image";
-    if (s.hasImg) { return pathType() === "video" ? "video" : "image"; }
+    if (s.hasImg) {
+      return pathType() === "video" ? "video" : "image";
+    }
     return pathType() || "other";
   }
-  function assetHasMedia(id) { const s = scanAsset(id); return !!(s.urls.length || s.hasVideo || s.hasAudio || s.has3d || s.hasImg); }
+  function assetHasMedia(id) {
+    const s = scanAsset(id);
+    return !!(s.urls.length || s.hasVideo || s.hasAudio || s.has3d || s.hasImg);
+  }
 
   // authoritative state for a tracked asset
   function assetState(id) {
@@ -141,8 +227,21 @@
   }
 
   /* ==================== notification gating + firing ==================== */
-  function enabledFor(type) { const t = CFG.types || {}; return (type in t) ? !!t[type] : !!t.other; }
-  function typeLabel(t) { return t === "3d" ? "3D model" : t === "video" ? "Video" : t === "image" ? "Image" : t === "audio" ? "Audio" : "Generation"; }
+  function enabledFor(type) {
+    const t = CFG.types || {};
+    return type in t ? !!t[type] : !!t.other;
+  }
+  function typeLabel(t) {
+    return t === "3d"
+      ? "3D model"
+      : t === "video"
+        ? "Video"
+        : t === "image"
+          ? "Image"
+          : t === "audio"
+            ? "Audio"
+            : "Generation";
+  }
   let LAST = null;
 
   function notify(kind, type) {
@@ -153,17 +252,56 @@
     if (!enabledFor(type)) return;
     const label = typeLabel(type);
     let title, message;
-    if (kind === "done") { title = label + " ready \u2713"; message = "Your " + label.toLowerCase() + " finished generating on Higgsfield."; }
-    else { title = label + " failed \u2717"; message = "Higgsfield couldn't finish this " + label.toLowerCase() + " \u2014 open the tab to retry."; }
-    try { chrome.runtime.sendMessage({ type: "notify", title, message, kind, gtype: type, url: location.href }); } catch (e) {}
+    if (kind === "done") {
+      title = label + " ready \u2713";
+      message = "Your " + label.toLowerCase() + " finished generating on Higgsfield.";
+    } else {
+      title = label + " failed \u2717";
+      message =
+        "Higgsfield couldn't finish this " + label.toLowerCase() + " \u2014 open the tab to retry.";
+    }
+    try {
+      chrome.runtime.sendMessage({
+        type: "notify",
+        title,
+        message,
+        kind,
+        gtype: type,
+        url: location.href,
+      });
+    } catch (e) {}
     if (CFG.sound) chime(kind, type);
   }
 
   /* ==================== chime (best-effort, resumes on interaction) ==================== */
-  let AC = null, hooked = false;
-  function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume().catch(() => {}); return AC; } catch (e) { return null; } }
-  function hookResume() { if (hooked) return; hooked = true; const r = () => { ac(); if (CFG.keepAlive) startKeepAlive(); }; window.addEventListener("pointerdown", r); window.addEventListener("keydown", r); }
-  function chime(kind, type) { const c = ac(); if (!c || !window.HFSounds) return; try { window.HFSounds.play(c, kind, type); } catch (e) {} }
+  let AC = null,
+    hooked = false;
+  function ac() {
+    try {
+      if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+      if (AC.state === "suspended") AC.resume().catch(() => {});
+      return AC;
+    } catch (e) {
+      return null;
+    }
+  }
+  function hookResume() {
+    if (hooked) return;
+    hooked = true;
+    const r = () => {
+      ac();
+      if (CFG.keepAlive) startKeepAlive();
+    };
+    window.addEventListener("pointerdown", r);
+    window.addEventListener("keydown", r);
+  }
+  function chime(kind, type) {
+    const c = ac();
+    if (!c || !window.HFSounds) return;
+    try {
+      window.HFSounds.play(c, kind, type);
+    } catch (e) {}
+  }
   hookResume();
 
   /* ==================== lifecycle tracking ==================== */
@@ -173,30 +311,49 @@
   function sweep() {
     // 1) tiles that currently carry a job status
     const live = new Set();
-    document.querySelectorAll("[data-asset-id][data-job-status]").forEach(el => {
-      const id = el.getAttribute("data-asset-id"); if (!id) return;
+    document.querySelectorAll("[data-asset-id][data-job-status]").forEach((el) => {
+      const id = el.getAttribute("data-asset-id");
+      if (!id) return;
       const st = (el.getAttribute("data-job-status") || "").toLowerCase().trim();
       const cls = classify(st);
       live.add(id);
       let rec = tracked.get(id);
       if (!rec) {
         // first time we see this tile
-        rec = { state: cls, type: classifyAsset(id), doneNotified: false, failNotified: false, terminal: false, goneCount: 0 };
+        rec = {
+          state: cls,
+          type: classifyAsset(id),
+          doneNotified: false,
+          failNotified: false,
+          terminal: false,
+          goneCount: 0,
+        };
         // suppress anything already terminal at first sight (prevents page-load spam)
-        if (cls === "success") { rec.doneNotified = true; rec.terminal = true; }
-        if (cls === "failed") { rec.failNotified = true; rec.terminal = true; }
+        if (cls === "success") {
+          rec.doneNotified = true;
+          rec.terminal = true;
+        }
+        if (cls === "failed") {
+          rec.failNotified = true;
+          rec.terminal = true;
+        }
         tracked.set(id, rec);
       }
       rec.state = cls;
       if (rec.terminal) return;
       if (cls === "failed" && !rec.failNotified) {
         rec.type = classifyAsset(id) || rec.type;
-        notify("fail", rec.type); rec.failNotified = true; rec.terminal = true;
+        notify("fail", rec.type);
+        rec.failNotified = true;
+        rec.terminal = true;
       } else if (cls === "success" && !rec.doneNotified) {
         // an explicit terminal-success status on the tile — the job is done; don't wait
         // for media (deferred in background tabs). classifyAsset falls back to the page
         // type when media isn't loaded yet, so the alert is still labelled correctly.
-        rec.type = classifyAsset(id) || rec.type; notify("done", rec.type); rec.doneNotified = true; rec.terminal = true;
+        rec.type = classifyAsset(id) || rec.type;
+        notify("done", rec.type);
+        rec.doneNotified = true;
+        rec.terminal = true;
       }
     });
 
@@ -204,13 +361,31 @@
     tracked.forEach((rec, id) => {
       if (rec.terminal || live.has(id)) return;
       const s = assetState(id);
-      if (s.cls === "failed" && !rec.failNotified) { rec.type = classifyAsset(id) || rec.type; notify("fail", rec.type); rec.failNotified = true; rec.terminal = true; return; }
-      if (s.cls === "success" && !rec.doneNotified) { rec.type = classifyAsset(id) || rec.type; notify("done", rec.type); rec.doneNotified = true; rec.terminal = true; return; }
-      if (s.cls === "gone") { rec.goneCount = (rec.goneCount || 0) + 1; if (rec.goneCount > 6) tracked.delete(id); } // tile vanished without resolving — forget quietly
+      if (s.cls === "failed" && !rec.failNotified) {
+        rec.type = classifyAsset(id) || rec.type;
+        notify("fail", rec.type);
+        rec.failNotified = true;
+        rec.terminal = true;
+        return;
+      }
+      if (s.cls === "success" && !rec.doneNotified) {
+        rec.type = classifyAsset(id) || rec.type;
+        notify("done", rec.type);
+        rec.doneNotified = true;
+        rec.terminal = true;
+        return;
+      }
+      if (s.cls === "gone") {
+        rec.goneCount = (rec.goneCount || 0) + 1;
+        if (rec.goneCount > 6) tracked.delete(id);
+      } // tile vanished without resolving — forget quietly
     });
 
     // keep the map from growing forever
-    if (tracked.size > 400) tracked.forEach((r, id) => { if (r.terminal) tracked.delete(id); });
+    if (tracked.size > 400)
+      tracked.forEach((r, id) => {
+        if (r.terminal) tracked.delete(id);
+      });
   }
   /* ==================== real-time detection ====================
      A MutationObserver is the primary trigger. Unlike setInterval, its callback fires
@@ -223,7 +398,12 @@
     if (sweepQueued) return;
     sweepQueued = true;
     // microtask, not setTimeout — microtasks are NOT throttled in background tabs
-    Promise.resolve().then(() => { sweepQueued = false; try { sweep(); } catch (e) {} });
+    Promise.resolve().then(() => {
+      sweepQueued = false;
+      try {
+        sweep();
+      } catch (e) {}
+    });
   }
   let observer = null;
   function startObserver() {
@@ -232,8 +412,14 @@
       observer = new MutationObserver((muts) => {
         for (let i = 0; i < muts.length; i++) {
           const m = muts[i];
-          if (m.type === "attributes") { scheduleSweep(); return; }
-          if (m.type === "childList" && (m.addedNodes.length || m.removedNodes.length)) { scheduleSweep(); return; }
+          if (m.type === "attributes") {
+            scheduleSweep();
+            return;
+          }
+          if (m.type === "childList" && (m.addedNodes.length || m.removedNodes.length)) {
+            scheduleSweep();
+            return;
+          }
         }
       });
       observer.observe(document.documentElement, {
@@ -241,7 +427,7 @@
         childList: true,
         attributes: true,
         attributeFilter: ["data-job-status", "src"],
-        attributeOldValue: true
+        attributeOldValue: true,
       });
     } catch (e) {}
   }
@@ -254,32 +440,45 @@
      track keeps this tab flagged as "playing audio", which exempts it from background
      throttling so alerts stay instant even minimized. Off by default; starts only after
      a user gesture (browsers block autoplay). Costs nothing when off. */
-  const SILENT_WAV = "data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  const SILENT_WAV =
+    "data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
   let keepEl = null;
   function applyKeepAlive() {
-    if (CFG.keepAlive) startKeepAlive(); else stopKeepAlive();
+    if (CFG.keepAlive) startKeepAlive();
+    else stopKeepAlive();
   }
   function startKeepAlive() {
     try {
-      if (!keepEl) { keepEl = new Audio(SILENT_WAV); keepEl.loop = true; keepEl.volume = 1.0; }
-      const p = keepEl.play(); if (p && p.catch) p.catch(() => {}); // resumes on next gesture if blocked
+      if (!keepEl) {
+        keepEl = new Audio(SILENT_WAV);
+        keepEl.loop = true;
+        keepEl.volume = 1.0;
+      }
+      const p = keepEl.play();
+      if (p && p.catch) p.catch(() => {}); // resumes on next gesture if blocked
     } catch (e) {}
   }
-  function stopKeepAlive() { try { if (keepEl) keepEl.pause(); } catch (e) {} }
+  function stopKeepAlive() {
+    try {
+      if (keepEl) keepEl.pause();
+    } catch (e) {}
+  }
 
   /* ==================== popup status channel ==================== */
   try {
     chrome.runtime.onMessage.addListener((msg, _s, reply) => {
       if (!msg || msg.type !== "notif-status") return;
       let active = 0;
-      tracked.forEach(r => { if (!r.terminal && (r.state === "working" || r.state === "unknown")) active++; });
+      tracked.forEach((r) => {
+        if (!r.terminal && (r.state === "working" || r.state === "unknown")) active++;
+      });
       reply({
         version: VERSION,
         onHiggsfield: true,
         pageType: pathType() || "",
         active,
         liveTiles: document.querySelectorAll("[data-asset-id][data-job-status]").length,
-        last: LAST
+        last: LAST,
       });
       return true;
     });

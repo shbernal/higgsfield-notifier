@@ -3,14 +3,8 @@
   "name": "Higgsfield Generation Notifier",
   "version": "1.4.0",
   "description": "Get a notification the moment ANY Higgsfield generation finishes or fails \u2014 video, image, audio, 3D. Works in Chrome, Edge, Brave, Opera GX, Vivaldi on Windows, macOS and Linux. Optional phone push.",
-  "permissions": [
-    "notifications",
-    "storage"
-  ],
-  "host_permissions": [
-    "https://higgsfield.ai/*",
-    "https://ntfy.sh/*"
-  ],
+  "permissions": ["notifications", "storage"],
+  "host_permissions": ["https://higgsfield.ai/*", "https://ntfy.sh/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -30,13 +24,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://higgsfield.ai/*"
-      ],
-      "js": [
-        "sounds.js",
-        "content.js"
-      ],
+      "matches": ["https://higgsfield.ai/*"],
+      "js": ["sounds.js", "content.js"],
       "run_at": "document_idle"
     }
   ]
