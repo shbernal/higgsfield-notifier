@@ -14,7 +14,10 @@
     "build:firefox": "node scripts/build-firefox.mjs",
     "lint:firefox": "pnpm run build:firefox && web-ext lint --source-dir dist-firefox",
     "package:firefox": "pnpm run build:firefox && web-ext build --source-dir dist-firefox --artifacts-dir release --filename higgsfield-notifier-firefox-{version}.zip --overwrite-dest",
-    "dev:firefox": "pnpm run build:firefox && web-ext run --source-dir dist-firefox --start-url https://higgsfield.ai"
+    "dev:firefox": "pnpm run build:firefox && web-ext run --source-dir dist-firefox --start-url https://higgsfield.ai",
+    "test": "node --test tests/",
+    "check:version": "node scripts/check-version.mjs",
+    "publish:amo": "node scripts/publish-amo.mjs"
   },
   "devDependencies": {
     "oxfmt": "^0.78.0",

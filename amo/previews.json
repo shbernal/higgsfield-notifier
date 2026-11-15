@@ -1,0 +1,26 @@
+[
+  {
+    "file": "assets/store/screenshot-1-notification.png",
+    "caption": {
+      "en-US": "A desktop notification the moment a video, image, audio or 3D generation finishes."
+    }
+  },
+  {
+    "file": "assets/store/screenshot-2-phone-push.png",
+    "caption": {
+      "en-US": "Optional push to your phone through the free ntfy app."
+    }
+  },
+  {
+    "file": "assets/store/screenshot-3-popup.png",
+    "caption": {
+      "en-US": "Choose which media types alert you, and whether to hear about finished generations, failed ones or both."
+    }
+  },
+  {
+    "file": "assets/store/screenshot-4-failed.png",
+    "caption": {
+      "en-US": "Failed generations alert you too, so you can retry right away."
+    }
+  }
+]
