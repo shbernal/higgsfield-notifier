@@ -31,8 +31,14 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Package
+      - name: Package for Chromium
         run: pnpm package
+
+      - name: Lint Firefox build
+        run: pnpm lint:firefox
+
+      - name: Package for Firefox
+        run: pnpm package:firefox
 
   commit-check:
     runs-on: ubuntu-latest

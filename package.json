@@ -9,7 +9,11 @@
     "lint": "oxlint",
     "format": "oxfmt --check .",
     "format:write": "oxfmt .",
-    "package": "web-ext build --source-dir extension --artifacts-dir release --overwrite-dest"
+    "package": "web-ext build --source-dir extension --artifacts-dir release --filename higgsfield-notifier-chrome-{version}.zip --overwrite-dest",
+    "build:firefox": "node scripts/build-firefox.mjs",
+    "lint:firefox": "pnpm run build:firefox && web-ext lint --source-dir dist-firefox",
+    "package:firefox": "pnpm run build:firefox && web-ext build --source-dir dist-firefox --artifacts-dir release --filename higgsfield-notifier-firefox-{version}.zip --overwrite-dest",
+    "dev:firefox": "pnpm run build:firefox && web-ext run --source-dir dist-firefox --start-url https://higgsfield.ai"
   },
   "devDependencies": {
     "oxfmt": "^0.78.0",

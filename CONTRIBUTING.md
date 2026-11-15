@@ -8,7 +8,8 @@ Fully AI-generated issues and pull requests are welcome.
 pnpm install
 ```
 
-Load `extension/` unpacked from `chrome://extensions` with Developer mode on, and reload it after each change.
+- Chromium: load `extension/` unpacked from `chrome://extensions` with Developer mode on, and reload it after each change.
+- Firefox: `pnpm dev:firefox` builds `dist-firefox/` and opens Firefox with it installed. Rerun it after each change.
 
 ## Checks
 
@@ -16,7 +17,8 @@ CI runs these on every pull request:
 
 - `pnpm format` (`pnpm format:write` fixes it)
 - `pnpm lint`
-- `pnpm package`, which builds the zip into `release/`
+- `pnpm package` and `pnpm package:firefox`, which build the zips into `release/`
+- `pnpm lint:firefox`, which runs `web-ext lint` on the Firefox build
 
 ## Commits and pull requests
 

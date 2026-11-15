@@ -19,7 +19,7 @@ Get a notification when a Higgsfield generation finishes or fails.
 
 <!-- TODO: screenshot of the popup next to a desktop notification -->
 
-A Chromium extension that watches your open higgsfield.ai tabs and sends a system notification the moment a generation completes or fails.
+A browser extension that watches your open higgsfield.ai tabs and sends a system notification the moment a generation completes or fails.
 It works for every kind of output: video, image, audio and 3D.
 It only watches: it never clicks Generate, writes prompts or spends credits.
 
@@ -32,16 +32,38 @@ It only watches: it never clicks Generate, writes prompts or spends credits.
 
 ## Install
 
-The extension is not on the Chrome Web Store yet, so you load it unpacked.
-It runs in Chrome, Edge, Brave, Opera GX and Vivaldi.
+The extension is not on the Chrome Web Store or addons.mozilla.org yet, so you load it from a clone.
+It runs in Chrome, Edge, Brave, Opera GX, Vivaldi and Firefox 140 or later.
 
 ```sh
 git clone https://github.com/shbernal/higgsfield-notifier.git
 ```
 
+<details>
+<summary>Chromium browsers</summary>
+
 1. Open `chrome://extensions` and turn on **Developer mode**.
 2. Click **Load unpacked** and select the `extension` folder of the clone.
 3. Refresh any open Higgsfield tab.
+
+</details>
+
+<details>
+<summary>Firefox</summary>
+
+Build the Firefox version with [pnpm](https://pnpm.io):
+
+```sh
+pnpm install && pnpm build:firefox
+```
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on** and select `dist-firefox/manifest.json`.
+3. Refresh any open Higgsfield tab.
+
+Firefox removes temporary add-ons when it restarts.
+
+</details>
 
 ## Quickstart
 
@@ -60,6 +82,7 @@ Your computer, the browser and the Higgsfield tab must keep running: the phone g
 3. In the ntfy app, tap **+** and subscribe to that exact topic.
 4. Hit **Send a test to my phone**.
 
+Firefox asks for your consent to share browsing data when you turn this on, since each alert carries the Higgsfield page link.
 Anyone who knows the topic name can read your alerts, so keep it private.
 Phone alerts follow the same type and event switches as desktop alerts.
 
