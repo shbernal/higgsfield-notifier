@@ -60,7 +60,8 @@
   } catch {}
 
   /* ==================== job-status vocabulary ====================
-     Confirmed live: queued, in_progress (working) | nsfw (terminal failure).
+     Higgsfield's own enum: waiting, queued, in_progress, ip_detect, dna, script, visuals,
+     vision, flow (working) | failed, nsfw, ip_detected, canceled (failed) | completed.
      Known working/failed sets are explicit; any OTHER terminal status counts as a
      success, but only once real media for that asset is actually on the page. */
   const JOB_WORKING = new Set([
@@ -79,6 +80,12 @@
     "created",
     "initializing",
     "waiting",
+    "ip_detect",
+    "dna",
+    "script",
+    "visuals",
+    "vision",
+    "flow",
   ]);
   const JOB_FAILED = new Set([
     "nsfw",
@@ -95,6 +102,7 @@
     "declined",
     "content_moderated",
     "content_moderation",
+    "ip_detected",
   ]);
   function classify(st) {
     if (JOB_WORKING.has(st)) return "working";
