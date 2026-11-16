@@ -3,11 +3,42 @@
 // notification, and (2) mirror that same alert to the phone via ntfy when phone
 // alerts are switched on. It also answers a "phone-test" from the popup so you can
 // confirm the whole chain end to end.
+//
+// Every open Higgsfield tab reports the same jobs (tile watcher + account-wide stream),
+// so alerts that carry a jobId fire only once per job. The record lives in
+// storage.session so it survives the service worker being shut down.
 
 const NTFY_DEFAULT = "https://ntfy.sh";
 const IS_GECKO = typeof browser !== "undefined" && !!browser.runtime.getBrowserInfo;
 // Firefox only: consent the popup asks for when phone alerts are switched on.
 const PHONE_DATA = { data_collection: ["browsingActivity", "websiteContent"] };
+
+const SEEN_KEY = "hfnSeen";
+const SEEN_TTL_MS = 24 * 60 * 60 * 1000;
+let seenQueue = Promise.resolve();
+
+// Resolves true the first time a jobId is claimed, false after that. Calls run one at a
+// time so two tabs reporting the same job at once can't both win.
+function claimJob(jobId) {
+  if (!jobId) return Promise.resolve(true);
+  const run = seenQueue.then(async () => {
+    const store = chrome.storage.session;
+    const now = Date.now();
+    let seen = {};
+    try {
+      seen = (await store.get(SEEN_KEY))[SEEN_KEY] || {};
+    } catch {}
+    if (seen[jobId]) return false;
+    seen[jobId] = now;
+    for (const id in seen) if (now - seen[id] > SEEN_TTL_MS) delete seen[id];
+    try {
+      await store.set({ [SEEN_KEY]: seen });
+    } catch {}
+    return true;
+  });
+  seenQueue = run.catch(() => {});
+  return run;
+}
 
 function localNotify(msg) {
   chrome.notifications.create(
@@ -70,9 +101,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || !msg.type) return;
 
   if (msg.type === "notify") {
-    localNotify(msg);
-    pushToPhone(msg);
-    return; // fire and forget
+    claimJob(msg.jobId).then((fired) => {
+      if (fired) {
+        localNotify(msg);
+        pushToPhone(msg);
+      }
+      sendResponse({ fired });
+    });
+    return true; // reply after the dedupe check
   }
 
   if (msg.type === "phone-test") {

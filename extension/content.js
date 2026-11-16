@@ -9,8 +9,13 @@
 // It does NOT click Generate, set prompts, manage a queue, or touch credits. It only
 // watches and notifies. Detection model:
 //   working/failed  -> tile keeps data-job-status
-//   success         -> attribute is removed and the finished media (URL contains the
-//                      asset id) appears in the grid.
+//   success         -> attribute becomes "completed" (or is removed) and the finished
+//                      media (URL contains the asset id) appears in the grid.
+//
+// Tiles only exist for the page on screen, so a video started on one page and finished
+// while you're on another is caught by stream.js instead: it relays Higgsfield's
+// account-wide job events here as "hfn:job". Both paths tag alerts with the job id
+// (the tile's data-asset-id) and background.js fires once per job across all tabs.
 
 (() => {
   "use strict";
@@ -50,11 +55,13 @@
         CFG = mergeCfg(o.hfNotif);
         applyKeepAlive();
       }
+      syncStream();
     });
     chrome.storage.onChanged.addListener((ch, area) => {
       if (area === "local" && ch.hfNotif) {
         CFG = mergeCfg(ch.hfNotif.newValue);
         applyKeepAlive();
+        syncStream();
       }
     });
   } catch {}
@@ -194,7 +201,36 @@
     }
     return found;
   }
+  // Higgsfield's own label on a tile, e.g. data-tour-asset-kind="image"
+  function tileKind(id) {
+    const card = cardFor(id);
+    const k = ((card && card.getAttribute("data-tour-asset-kind")) || "").toLowerCase();
+    return k === "video" || k === "image" || k === "audio" || k === "3d" ? k : "";
+  }
+  // best guess from the job's model name (job_set_type), for jobs with no tile in view
+  function jobSetKind(t) {
+    t = String(t || "").toLowerCase();
+    if (!t) return "";
+    if (/(^|_)to_3d/.test(t)) return "3d";
+    if (/speech|tts|elevenlabs|audio|music|sonilo|intone/.test(t)) return "audio";
+    if (/image2video|video|draw_to|reference2video/.test(t)) return "video";
+    if (
+      /image|photo|headshot|outpaint|sticker|sprite|sheet|stylist|collage|cleaner|skin|relight|upscale|soul|banana|seedream|flux|gpt|ideogram|recraft|imagegen|hazel|canvas|keyframes|zooms|shots|location|cast|game_dump|matchcut|cinematic_studio_2_5/.test(
+        t,
+      )
+    )
+      return "image";
+    if (
+      /wan|kling|veo|seedance|sora|hailuo|minimax|lipsync|speak|animate|motion|reels|dramas|reframe|restyle|katana|talk|sync_so|beat_fit|transition|fps_boost|hyperion|omni|what_if|multiplier|hook|voice_change|mult_|influencer|evolution|cinematic_studio|hf_fnf|happy_horse|vibe|mixed_media|youtube|viral|concat|explainer|character_swap|grok/.test(
+        t,
+      )
+    )
+      return "video";
+    return "";
+  }
   function classifyAsset(id) {
+    const kind = tileKind(id);
+    if (kind) return kind;
     const s = scanAsset(id);
     let ut = "";
     for (const u of s.urls) {
@@ -252,7 +288,7 @@
   }
   let LAST = null;
 
-  function notify(kind, type) {
+  function notify(kind, type, jobId) {
     LAST = { kind, type, at: Date.now() };
     if (!CFG.on) return;
     if (kind === "done" && !CFG.onComplete) return;
@@ -269,16 +305,16 @@
         "Higgsfield couldn't finish this " + label.toLowerCase() + " \u2014 open the tab to retry.";
     }
     try {
-      chrome.runtime.sendMessage({
-        type: "notify",
-        title,
-        message,
-        kind,
-        gtype: type,
-        url: location.href,
-      });
+      chrome.runtime.sendMessage(
+        { type: "notify", title, message, kind, gtype: type, jobId, url: location.href },
+        (res) => {
+          void chrome.runtime.lastError;
+          // background answers fired:false when another tab or path already alerted
+          if (res && res.fired === false) return;
+          if (CFG.sound) chime(kind, type);
+        },
+      );
     } catch {}
-    if (CFG.sound) chime(kind, type);
   }
 
   /* ==================== chime (best-effort, resumes on interaction) ==================== */
@@ -351,7 +387,7 @@
       if (rec.terminal) return;
       if (cls === "failed" && !rec.failNotified) {
         rec.type = classifyAsset(id) || rec.type;
-        notify("fail", rec.type);
+        notify("fail", rec.type, id);
         rec.failNotified = true;
         rec.terminal = true;
       } else if (cls === "success" && !rec.doneNotified) {
@@ -359,7 +395,7 @@
         // for media (deferred in background tabs). classifyAsset falls back to the page
         // type when media isn't loaded yet, so the alert is still labelled correctly.
         rec.type = classifyAsset(id) || rec.type;
-        notify("done", rec.type);
+        notify("done", rec.type, id);
         rec.doneNotified = true;
         rec.terminal = true;
       }
@@ -371,14 +407,14 @@
       const s = assetState(id);
       if (s.cls === "failed" && !rec.failNotified) {
         rec.type = classifyAsset(id) || rec.type;
-        notify("fail", rec.type);
+        notify("fail", rec.type, id);
         rec.failNotified = true;
         rec.terminal = true;
         return;
       }
       if (s.cls === "success" && !rec.doneNotified) {
         rec.type = classifyAsset(id) || rec.type;
-        notify("done", rec.type);
+        notify("done", rec.type, id);
         rec.doneNotified = true;
         rec.terminal = true;
         return;
@@ -472,6 +508,39 @@
     } catch {}
   }
 
+  /* ==================== account-wide job stream (stream.js) ==================== */
+  let STREAM = "off";
+  function syncStream() {
+    window.dispatchEvent(new CustomEvent("hfn:stream", { detail: JSON.stringify({ on: CFG.on }) }));
+  }
+  window.addEventListener("hfn:stream-ready", syncStream);
+  window.addEventListener("hfn:stream-state", (e) => {
+    STREAM = String(e.detail || "");
+  });
+  window.addEventListener("hfn:job", (e) => {
+    let ev;
+    try {
+      ev = JSON.parse(e.detail);
+    } catch {
+      return;
+    }
+    if (!ev || !ev.id) return;
+    const cls = classify(ev.status);
+    if (cls !== "success" && cls !== "failed") return;
+    const rec = tracked.get(ev.id);
+    if (rec && (cls === "success" ? rec.doneNotified : rec.failNotified)) return;
+    const type =
+      ev.mediaType || tileKind(ev.id) || (rec && rec.type) || jobSetKind(ev.jobSetType) || "other";
+    if (rec) {
+      rec.state = cls;
+      rec.terminal = true;
+      rec.doneNotified = rec.doneNotified || cls === "success";
+      rec.failNotified = rec.failNotified || cls === "failed";
+    }
+    notify(cls === "success" ? "done" : "fail", type, ev.id);
+  });
+  syncStream();
+
   /* ==================== popup status channel ==================== */
   try {
     chrome.runtime.onMessage.addListener((msg, _s, reply) => {
@@ -486,6 +555,7 @@
         pageType: pathType() || "",
         active,
         liveTiles: document.querySelectorAll("[data-asset-id][data-job-status]").length,
+        stream: STREAM,
         last: LAST,
       });
       return true;
