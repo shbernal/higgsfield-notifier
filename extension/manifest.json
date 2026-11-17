@@ -27,6 +27,12 @@
       "matches": ["https://higgsfield.ai/*"],
       "js": ["sounds.js", "content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://higgsfield.ai/*"],
+      "js": ["stream.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ]
 }

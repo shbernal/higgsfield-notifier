@@ -18,7 +18,7 @@ Saves the user's settings in local extension storage: which media types and even
 
 ## Host Permission: `https://higgsfield.ai/*` and `https://ntfy.sh/*`
 
-The content script runs only on higgsfield.ai, where it watches the status of the user's own generation tiles. It never clicks, types or submits anything. ntfy.sh is the default server for the optional phone alerts: when the user turns them on, the background script posts each alert there so it reaches the ntfy app on the user's phone.
+The content script runs only on higgsfield.ai, where it watches the status of the user's own generation tiles and the job-status events the Higgsfield page itself receives, without making any requests of its own, so jobs that finish while another Higgsfield page is open are caught too. It never clicks, types or submits anything. ntfy.sh is the default server for the optional phone alerts: when the user turns them on, the background script posts each alert there so it reaches the ntfy app on the user's phone.
 
 ## Remote Code
 

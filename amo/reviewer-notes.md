@@ -10,6 +10,8 @@ The package is the `extension/` directory as committed, with only `manifest.json
 >
 > The content script runs on higgsfield.ai only. It watches the result tiles for status changes and asks the background script to show a notification. It never clicks, types or submits anything on the page.
 >
+> stream.js runs in the page's MAIN world on higgsfield.ai only, at document_start. It wraps window.fetch so that when the Higgsfield page opens its own job-status event stream (fnf-api-gw.higgsfield.ai/fnf-notification/notifications/stream), it reads a clone of that response and passes finished or failed job ids to the content script. That way a generation that finishes while the user is on another Higgsfield page is still reported. It makes no requests of its own and reads no credentials.
+>
 > Phone alerts are off by default. When the user turns them on, the popup requests the optional browsingActivity and websiteContent data collection permissions, and only once they are granted does the background script POST each alert (title, status text and the higgsfield.ai page link) to the ntfy server the user configured, https://ntfy.sh by default. Nothing else is sent anywhere.
 >
 > To test without an account on higgsfield.ai: open the popup and use "Send a test notification", and under Phone alerts, "Send a test to my phone" with any topic name, which can be watched at https://ntfy.sh/<topic>.

@@ -365,6 +365,7 @@ async function poll() {
         true,
         res.active === 1 ? "1 generation running now" : res.active + " generations running now",
       );
+    else if (res.stream === "open") setStatus(false, "Watching all your generations");
     else setStatus(false, "Watching \u2014 nothing rendering right now");
   } catch {
     setStatus(false, "Watching");
