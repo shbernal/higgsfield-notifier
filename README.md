@@ -91,8 +91,13 @@ Phone alerts follow the same type and event switches as desktop alerts.
 Higgsfield marks each result tile with `data-asset-id` and `data-job-status`.
 The content script watches those attributes with a `MutationObserver`, plus a slow fallback sweep:
 
-- A tile that keeps `data-job-status` is still working, or has failed when the status is a failure like `failed` or `nsfw`.
+- A tile that keeps `data-job-status` is still working, or has failed when the status is a failure like `failed`.
 - A tile that drops the attribute and shows media whose URL contains the asset id has finished.
+
+Tiles only cover the page on screen, and Higgsfield removes an NSFW-flagged tile without ever marking it.
+So a script in the page also reads the job status stream Higgsfield's own UI keeps open, and reports every job that reaches a final status, whichever page is open.
+It makes no requests of its own.
+NSFW jobs get their own alert, since Higgsfield refunds their credits.
 
 The media type comes from the elements and file extensions in the tile, with the page path as a hint.
 Video and image detection is the most tested; if audio or 3D alerts don't fire, that's the first thing to report.

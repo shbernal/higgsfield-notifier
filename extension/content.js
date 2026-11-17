@@ -21,7 +21,7 @@
   "use strict";
   if (window.__hfNotifierLoaded) return;
   window.__hfNotifierLoaded = true;
-  const VERSION = "1.5.0";
+  const VERSION = "1.6.0";
   const POLL_MS = 2000; // fallback sweep only — real-time detection is the MutationObserver below
 
   /* ============================ settings ============================ */
@@ -286,7 +286,9 @@
   }
   let LAST = null;
 
-  function notify(kind, type, jobId) {
+  // status is Higgsfield's job status when known; "nsfw" gets its own wording since
+  // Higgsfield refunds those credits and retrying the same prompt won't help.
+  function notify(kind, type, jobId, status) {
     LAST = { kind, type, at: Date.now() };
     if (!CFG.on) return;
     if (kind === "done" && !CFG.onComplete) return;
@@ -297,6 +299,10 @@
     if (kind === "done") {
       title = label + " ready \u2713";
       message = "Your " + label.toLowerCase() + " finished generating on Higgsfield.";
+    } else if (status === "nsfw") {
+      title = label + " blocked \u2717";
+      message =
+        "Higgsfield flagged this " + label.toLowerCase() + " as NSFW and refunded the credits.";
     } else {
       title = label + " failed \u2717";
       message =
@@ -385,7 +391,7 @@
       if (rec.terminal) return;
       if (cls === "failed" && !rec.failNotified) {
         rec.type = classifyAsset(id) || rec.type;
-        notify("fail", rec.type, id);
+        notify("fail", rec.type, id, st);
         rec.failNotified = true;
         rec.terminal = true;
       } else if (cls === "success" && !rec.doneNotified) {
@@ -405,7 +411,7 @@
       const s = assetState(id);
       if (s.cls === "failed" && !rec.failNotified) {
         rec.type = classifyAsset(id) || rec.type;
-        notify("fail", rec.type, id);
+        notify("fail", rec.type, id, s.status);
         rec.failNotified = true;
         rec.terminal = true;
         return;
@@ -530,7 +536,7 @@
       rec.doneNotified = rec.doneNotified || cls === "success";
       rec.failNotified = rec.failNotified || cls === "failed";
     }
-    notify(cls === "success" ? "done" : "fail", type, ev.id);
+    notify(cls === "success" ? "done" : "fail", type, ev.id, ev.status);
   });
   window.dispatchEvent(new CustomEvent("hfn:stream-ping"));
 
