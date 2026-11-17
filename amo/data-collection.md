@@ -13,7 +13,7 @@ Last reviewed against `extension/` at version 1.5.0.
 
 ## Basis
 
-- `required: ["none"]`: with phone alerts off, nothing leaves the device. Settings live in `storage.local`. The content script reads only the status attributes and media of Higgsfield result tiles, plus the job-status events Higgsfield sends the signed-in user (read in the page with the user's own session, from Higgsfield's own API), and the background script turns them into local notifications.
+- `required: ["none"]`: with phone alerts off, nothing leaves the device. Settings live in `storage.local`. The content script reads only the status attributes and media of Higgsfield result tiles, plus the job-status events the Higgsfield page itself receives (read from the page's own stream, with no requests of the extension's own), and the background script turns them into local notifications.
 - `optional`: phone alerts POST the alert title, the status text and the Higgsfield page URL to an ntfy server (`https://ntfy.sh` unless the user sets another). The page URL is browsing activity and the generation status is website content. The popup calls `permissions.request` for both when the user turns phone alerts on, and `background.js` checks `permissions.contains` before every push.
 
 Anything else sent off the device, such as analytics or a remote config, needs a new category here and in the manifest before it ships.

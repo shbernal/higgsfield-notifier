@@ -13,8 +13,8 @@
 //                      media (URL contains the asset id) appears in the grid.
 //
 // Tiles only exist for the page on screen, so a video started on one page and finished
-// while you're on another is caught by stream.js instead: it relays Higgsfield's
-// account-wide job events here as "hfn:job". Both paths tag alerts with the job id
+// while you're on another is caught by stream.js instead: it reads the page's own
+// account-wide job event stream and relays final statuses here as "hfn:job". Both paths tag alerts with the job id
 // (the tile's data-asset-id) and background.js fires once per job across all tabs.
 
 (() => {
@@ -55,13 +55,11 @@
         CFG = mergeCfg(o.hfNotif);
         applyKeepAlive();
       }
-      syncStream();
     });
     chrome.storage.onChanged.addListener((ch, area) => {
       if (area === "local" && ch.hfNotif) {
         CFG = mergeCfg(ch.hfNotif.newValue);
         applyKeepAlive();
-        syncStream();
       }
     });
   } catch {}
@@ -510,10 +508,6 @@
 
   /* ==================== account-wide job stream (stream.js) ==================== */
   let STREAM = "off";
-  function syncStream() {
-    window.dispatchEvent(new CustomEvent("hfn:stream", { detail: JSON.stringify({ on: CFG.on }) }));
-  }
-  window.addEventListener("hfn:stream-ready", syncStream);
   window.addEventListener("hfn:stream-state", (e) => {
     STREAM = String(e.detail || "");
   });
@@ -529,8 +523,7 @@
     if (cls !== "success" && cls !== "failed") return;
     const rec = tracked.get(ev.id);
     if (rec && (cls === "success" ? rec.doneNotified : rec.failNotified)) return;
-    const type =
-      ev.mediaType || tileKind(ev.id) || (rec && rec.type) || jobSetKind(ev.jobSetType) || "other";
+    const type = tileKind(ev.id) || (rec && rec.type) || jobSetKind(ev.jobSetType) || "other";
     if (rec) {
       rec.state = cls;
       rec.terminal = true;
@@ -539,7 +532,7 @@
     }
     notify(cls === "success" ? "done" : "fail", type, ev.id);
   });
-  syncStream();
+  window.dispatchEvent(new CustomEvent("hfn:stream-ping"));
 
   /* ==================== popup status channel ==================== */
   try {

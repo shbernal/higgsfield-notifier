@@ -31,7 +31,7 @@
     {
       "matches": ["https://higgsfield.ai/*"],
       "js": ["stream.js"],
-      "run_at": "document_idle",
+      "run_at": "document_start",
       "world": "MAIN"
     }
   ]

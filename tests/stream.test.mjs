@@ -4,14 +4,15 @@ import test from "node:test";
 import vm from "node:vm";
 
 const src = readFileSync(new URL("../extension/stream.js", import.meta.url), "utf8");
-const ctx = vm.createContext({});
+const ctx = vm.createContext({ URL, location: { href: "https://higgsfield.ai/" } });
 vm.runInContext(src, ctx);
-const { parseSSE, resultKind } = ctx.HFStream;
+const { parseSSE, finalJob, isStreamUrl } = ctx.HFStream;
 
 // Frames as captured from fnf-api-gw.higgsfield.ai/fnf-notification/notifications/stream
 const PING = 'event: ping\ndata: {"time":"2026-11-16T10:28:06Z"}\n\n';
-const DONE =
-  'event: job:status_changed\ndata: {"id":"d501d414","job_id":"d501d414","job_set_type":"nano_banana_2","status":"completed"}\n\n';
+const job = (status) =>
+  `{"id":"d501d414","job_id":"d501d414","job_set_type":"nano_banana_2","status":"${status}"}`;
+const DONE = `event: job:status_changed\ndata: ${job("completed")}\n\n`;
 
 test("parseSSE splits complete events and keeps the partial tail", () => {
   const cut = DONE.length - 10;
@@ -30,11 +31,22 @@ test("parseSSE handles CRLF, comments and multi-line data", () => {
   assert.equal(events[0].data, "a\nb");
 });
 
-test("resultKind reads results.raw.type", () => {
-  assert.equal(resultKind({ results: { raw: { type: "image" } } }), "image");
-  assert.equal(resultKind({ results: { raw: { type: "video" } } }), "video");
-  assert.equal(resultKind({ results: { min: { type: "audio" } } }), "audio");
-  assert.equal(resultKind({ results: { raw: { type: "model_glb" } } }), "3d");
-  assert.equal(resultKind({ result: null }), "");
-  assert.equal(resultKind(null), "");
+test("finalJob keeps only final statuses", () => {
+  assert.equal(finalJob(job("in_progress")), null);
+  assert.equal(finalJob(job("queued")), null);
+  assert.equal(finalJob("not json"), null);
+  const done = finalJob(job("completed"));
+  assert.equal(done.id, "d501d414");
+  assert.equal(done.status, "completed");
+  assert.equal(done.jobSetType, "nano_banana_2");
+  assert.equal(finalJob(job("nsfw")).status, "nsfw");
+});
+
+test("isStreamUrl matches only the notification stream", () => {
+  const base = "https://fnf-api-gw.higgsfield.ai/fnf-notification/notifications/stream";
+  assert.equal(isStreamUrl(base), true);
+  assert.equal(isStreamUrl(base + "?lastEventId=42"), true);
+  assert.equal(isStreamUrl({ url: base }), true);
+  assert.equal(isStreamUrl("https://fnf-api-gw.higgsfield.ai/fnf/jobs/status-batch"), false);
+  assert.equal(isStreamUrl(undefined), false);
 });
