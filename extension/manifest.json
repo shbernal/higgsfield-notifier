@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Higgsfield Generation Notifier",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Get notified the moment a Higgsfield generation finishes or fails: video, image, audio, 3D. Optional phone push via ntfy.",
   "permissions": ["notifications", "storage"],
   "host_permissions": ["https://higgsfield.ai/*", "https://ntfy.sh/*"],
